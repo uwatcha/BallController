@@ -32,12 +32,12 @@ void ACursorController::UpdateCursorVector()
 {
 	// マウスのスクリーン座標を取得する
 	FVector2D mousePosition;
-	GetMousePosition(mousePosition.X, mousePosition.Y);
+	const bool bInside = GetMousePosition(mousePosition.X, mousePosition.Y);
 	
 	// レティクルからのマウスの相対ベクトルを計算する
 	FVector2D reticlePosition = ScreenCenterPosition;
 	
 	// マウス座標の、レティクルからの相対ベクトルを計算し、CursorPositionに反映する
 	FVector2D relativeVector = mousePosition - reticlePosition;
-	CursorVector = relativeVector;
+	CursorVector = bInside ? relativeVector : FVector2D(0, 0);
 }
