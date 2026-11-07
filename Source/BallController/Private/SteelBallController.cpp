@@ -60,7 +60,7 @@ void ASteelBallController::Move(const FVector2D& InputVector)
 	if (SphereMesh == nullptr || !SphereMesh->IsSimulatingPhysics()) return;
 	
 	// カメラのYaw角 (垂直軸に対する回転角度) を取得する。移動方向ベクトルを求めるときの基準に用いる
-	const FRotator CameraRotation = Controller->GetControlRotation();
+	const FRotator CameraRotation = Cast<APlayerController>(Controller)->PlayerCameraManager->GetCameraRotation();
 	const FRotator YawRotation = FRotator(0, CameraRotation.Yaw, 0);
 	
 	// カメラから見た、X, Y軸方向の基準となるベクトルを作成する
