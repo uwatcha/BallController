@@ -38,14 +38,14 @@ void ACursorController::Tick(float DeltaTime)
 	ScreenCenterPosition = viewportSize / 2;
 	
 	// 毎フレーム、GetCursorVectorでマウスの座標を取得し、CursorVectorに入れる
-	CursorVector = GetCursorVector();
+	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
 	//TODO: BallControllerに、CursorVectorを受け取り、AddForce()に入れる処理を書く。
 }
 
 // レティクルからのマウスの座標へのベクトルを返す
-FVector2D ACursorController::GetCursorVector()
+void ACursorController::UpdateCursorVector()
 {
 	// マウスのスクリーン座標を取得する
 	FVector2D mousePosition;
@@ -54,7 +54,7 @@ FVector2D ACursorController::GetCursorVector()
 	// レティクルからのマウスの相対ベクトルを計算する
 	FVector2D reticlePosition = ScreenCenterPosition;
 	
-	// マウス座標の、レティクルからの相対ベクトルを計算し、返す
+	// マウス座標の、レティクルからの相対ベクトルを計算し、CursorPositionに反映する
 	FVector2D relativeVector = mousePosition - reticlePosition;
-	return relativeVector;
+	CursorVector = relativeVector;
 }

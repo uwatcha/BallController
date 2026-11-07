@@ -20,6 +20,8 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	// 画面中央のレティクルから見たカーソルの相対ベクトル
 	FVector2D CursorVector;
 	APlayerController* PlayerController;
+	
+	void UpdateCursorVector();
 
 	protected:
 	virtual void BeginPlay() override;
@@ -27,5 +29,5 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	
 	public:
 	ACursorController();
-	FVector2D GetCursorVector();
+	FVector2D GetCursorVector() const { return CursorVector; }
 };
