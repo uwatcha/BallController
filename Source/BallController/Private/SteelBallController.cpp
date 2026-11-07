@@ -70,7 +70,7 @@ void ASteelBallController::Move(const FVector2D& InputVector)
 	FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
 	FVector ForceVector = (ForwardDirection * WorldInputVector.X) + (RightDirection * WorldInputVector.Y);
 	
-	SphereMesh->AddForce(ForceVector * 100.f);
+	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
 	GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
 }

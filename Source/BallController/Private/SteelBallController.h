@@ -24,6 +24,15 @@ public:
 private:
 	ACursorController* CursorController;
 	
+	// 鉄球に加える力の倍数
+	UPROPERTY(EditAnywhere)
+	float ForceVectorScale = 100.f;
+	
+	// 加える力を、true: 加速度, false: 力 として扱う。
+	// 直接加速度を与えると、SteelBallの重さを無視することができる。
+	UPROPERTY(EditAnywhere)
+	bool UseAcceleration = false;
+	
 protected:
 	virtual void BeginPlay() override;
 
