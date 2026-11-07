@@ -3,6 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
+#include "SteelBallController.h"
 #include "GameFramework/PlayerController.h"
 #include "CursorController.generated.h"
 
@@ -23,12 +24,25 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		
 		// CurSorVectorを計算して更新する処理
 		void UpdateCursorVector();
+	
+		// デバッグ用の入力マッピング
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
+		UInputMappingContext* IMC_Debug;
+	
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
+		UInputAction* IA_Kill;
+	
+		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
+		UInputAction* IA_Respawn;
+	
 
 	protected:
-	virtual void BeginPlay() override;
-	virtual void Tick(float DeltaTime) override;
+		virtual void BeginPlay() override;
+		virtual void Tick(float DeltaTime) override;
 	
 	public:
-	ACursorController();
-	FVector2D GetCursorVector() const { return CursorVector; }
+		ACursorController();
+		FVector2D GetCursorVector() const { return CursorVector; }
+	
+		virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent);
 };
