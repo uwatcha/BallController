@@ -25,8 +25,6 @@ void ACursorController::Tick(float DeltaTime)
 	// 毎フレーム、GetCursorVectorでマウスの座標を取得し、CursorVectorに入れる
 	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
-	
-	// TODO: BallControllerに、CursorVectorを受け取り、AddForce()に入れる処理を書く。
 }
 
 // レティクルからのマウスの座標へのベクトルを返す

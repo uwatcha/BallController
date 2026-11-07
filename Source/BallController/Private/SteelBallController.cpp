@@ -1,10 +1,13 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #include "SteelBallController.h"
+
+#include "CursorController.h"
 #include "EnhancedInputComponent.h" // 入力イベントと処理関数を紐づける
 #include "EnhancedInputSubsystems.h" // プレイヤーごとの入力設定を管理する
 
 #include "Engine/LocalPlayer.h"
+#include "Kismet/GameplayStatics.h"
 
 /* StudyMemo ===============
 キー入力
@@ -27,111 +30,47 @@ ASteelBallController::ASteelBallController()
 void ASteelBallController::BeginPlay()
 {
 	Super::BeginPlay();
-	UE_LOG(LogTemp, Warning, TEXT("ASteelBallController::BeginPlay()"));
-
-	// InputMappingContext(キー入力と操作の割り当て)をプレイヤーに登録する処理===============================================================
-	// 広い意味のControllerから、プレイヤー入力を扱うAPlayerControllerにCast
-	// Castしたコントローラーを取得し、成功したら続きの処理を続行
-	if (APlayerController* PlayerController = Cast<APlayerController>(GetController()))
-	{
-		// StudyMemo: -> : ポインタが指しているオブジェクトのメンバーにアクセスする
-		// StudyMemo: UEが用意しているクラスは、UEが生成、破棄を管理するため、基本的にポインタ型として扱う。(Unityと同じ）
-		// StudyMemo: 頭文字A: Actor系。ワールド上に存在できるもの。
-		// StudyMemo: 頭文字U: UObject系。Unityでいうコンポーネントや入力管理など
-		// コントローラーを取得できたら、そこから辿ってプレイヤー情報を取得
-		if (ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer())
-		{
-			// プレイヤー情報からSubsystemを取得	
-			if (UEnhancedInputLocalPlayerSubsystem* Subsystem = LocalPlayer->GetSubsystem<
-				UEnhancedInputLocalPlayerSubsystem>())
-			{
-				Subsystem->AddMappingContext(InputMappingContext, 0);
-				UE_LOG(LogTemp, Warning, TEXT("InputMappingContextを追加"));
-			}
-			else
-			{
-				UE_LOG(LogTemp, Error, TEXT("Subsystemの取得に失敗"));
-			}
-		}
-		else
-		{
-			UE_LOG(LogTemp, Error, TEXT("LocalPlayerの取得に失敗"));
-		}
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerControllerの取得に失敗"));
-	}
-	// ==============================================================================================================================
+	CursorController = Cast<ACursorController>(GetController());
+	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
+		
 }
 
-// Called every frame
 void ASteelBallController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	Move(CursorController->GetCursorVector());
 }
 
-// Called to bind functionality to input
-// Pawnに入力を紐づけるための関数
-void ASteelBallController::SetupPlayerInputComponent(UInputComponent* PlayerInputComponent)
+/**
+ * SteelBallを加速度を与えることで動かす
+ * @param InputVector ACursorController::GetCursorVector()で取得する、マウスによる鉄球の入力ベクトル
+ */
+void ASteelBallController::Move(const FVector2D& InputVector)
 {
-	Super::SetupPlayerInputComponent(PlayerInputComponent);
-	UE_LOG(LogTemp, Warning, TEXT("ASteelBallController::SetupPlayerInputComponent()"));
-
-	//PlayerInputComponentをEnhancedInputComponentとして取得
-	if (UEnhancedInputComponent* EnhancedInputComponent = Cast<UEnhancedInputComponent>(PlayerInputComponent))
-	{
-		//入力(例：前方向入力)と、それを受け付けた時に呼び出す関数を登録する
-		EnhancedInputComponent->BindAction(
-			// .hで宣言したInputAction
-			MoveAction,
-			// 入力条件を満たしている間(長押し中はtrue)
-			//StudyMemo: ETriggerEventには他に、Start, Canceledなどがある
-			ETriggerEvent::Triggered,
-			// 呼び出したい関数を持っているオブジェクトを登録
-			this,
-			// 呼び出したい関数のポインタ
-			&ASteelBallController::Move
-		);
-		UE_LOG(LogTemp, Warning, TEXT("MoveAction bound"));
-	}
-	else
-	{
-		UE_LOG(LogTemp, Error, TEXT("PlayerInputComponentのbindに失敗"));
-	}
-}
-
-void ASteelBallController::Move(const FInputActionValue& Value)
-{
-	UE_LOG(LogTemp, Log, TEXT("==============="));
-	FVector2D Vector = Value.Get<FVector2D>();
-	UE_LOG(LogTemp, Log, TEXT("Vector: %s"), *Vector.ToString());
+	// コントローラーの取得に失敗した時の処理
 	if (Controller == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("Controllerが無効です。"))
+		GEngine->AddOnScreenDebugMessage(3, 0.f, FColor::Red, TEXT("Controllerが無効です。"));
 		return;
 	}
-	APawn* SteelBallPawn = Controller->GetPawn();
-	UE_LOG(LogTemp, Log, TEXT("SteelBallPawn: %s"), *SteelBallPawn->GetName());
-	UPrimitiveComponent* SphereMesh = Cast<UPrimitiveComponent>(SteelBallPawn->GetRootComponent());
+	
+	// Controller->Pawn->ルートのコンポーネントからSteelBallのモデルを取得。問題があれば関数を即終了
+	UPrimitiveComponent* SphereMesh = Cast<UPrimitiveComponent>(Controller->GetPawn()->GetRootComponent());
 	if (SphereMesh == nullptr || !SphereMesh->IsSimulatingPhysics()) return;
 	
-	const FRotator Rotation = Controller->GetControlRotation();
-	const FRotator YawRotation = FRotator(0, Rotation.Yaw, 0);
-	UE_LOG(LogTemp, Log, TEXT("YawRotation: %s"), *YawRotation.ToString());
-
+	// カメラのYaw角 (垂直軸に対する回転角度) を取得する。移動方向ベクトルを求めるときの基準に用いる
+	const FRotator CameraRotation = Controller->GetControlRotation();
+	const FRotator YawRotation = FRotator(0, CameraRotation.Yaw, 0);
+	
+	// カメラから見た、X, Y軸方向の基準となるベクトルを作成する
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
-	UE_LOG(LogTemp, Log, TEXT("ForwardDirection: %s"), *ForwardDirection.ToString());
-
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
-	UE_LOG(LogTemp, Log, TEXT("RightDirection: %s"), *RightDirection.ToString());
-
-	FVector MovementDirection = (ForwardDirection * Vector.X) + (RightDirection * Vector.Y);
 	
-	SphereMesh->AddForce(MovementDirection * 500000.0f);
+	// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
+	FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
+	FVector ForceVector = (ForwardDirection * WorldInputVector.X) + (RightDirection * WorldInputVector.Y);
 	
-	// 	const FVector Right = GetActorRightVector();
-	// 	AddMovementInput(Right, Vector.X*100);
-	// 	const FVector Forward = GetActorForwardVector();
-	// 	AddMovementInput(Forward, Vector.Y*100);
+	SphereMesh->AddForce(ForceVector * 100.f);
+	
+	GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
 }

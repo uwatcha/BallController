@@ -19,7 +19,6 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	FIntPoint ScreenCenterPosition;
 	// 画面中央のレティクルから見たカーソルの相対ベクトル
 	FVector2D CursorVector;
-	APlayerController* PlayerController;
 	
 	void UpdateCursorVector();
 
