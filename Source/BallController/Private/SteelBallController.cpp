@@ -25,6 +25,7 @@ ASteelBallController::ASteelBallController()
 	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	UE_LOG(LogTemp, Warning, TEXT("ASteelBallController::Constructor"));
 	PrimaryActorTick.bCanEverTick = true;
+	UpdateSphereMeshMass();
 }
 
 void ASteelBallController::BeginPlay()
@@ -32,13 +33,13 @@ void ASteelBallController::BeginPlay()
 	Super::BeginPlay();
 	CursorController = Cast<ACursorController>(GetController());
 	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
-		
 }
 
 void ASteelBallController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	Move(CursorController->GetCursorVector());
+	UpdateSphereMeshMass();
 }
 
 /**
@@ -73,4 +74,24 @@ void ASteelBallController::Move(const FVector2D& InputVector)
 	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
 	GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
+}
+
+void ASteelBallController::UpdateSphereMeshMass()
+{
+	// UPrimitiveComponentの取得処理
+	USceneComponent* rootComponent = this->GetRootComponent();
+	if (rootComponent == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("rootComponentの取得に失敗しました。"));
+		return;
+	}
+	UPrimitiveComponent* pc = Cast<UPrimitiveComponent>(rootComponent);
+	if (pc == nullptr)
+	{
+		UE_LOG(LogTemp, Error, TEXT("UPrimitiveComponentの取得に失敗しました。"));
+		return;
+	}
+	
+	pc->SetMassOverrideInKg(NAME_None, Mass, true);
+	GEngine->AddOnScreenDebugMessage(4, 0.f, FColor::Blue, "Mass: "+FString::FromInt(pc->GetMass())+"kg");
 }

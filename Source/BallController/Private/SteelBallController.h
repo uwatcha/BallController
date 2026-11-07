@@ -33,6 +33,12 @@ private:
 	UPROPERTY(EditAnywhere)
 	bool UseAcceleration = false;
 	
+	// SteelBallの質量(kg)。上記のフィールドと同時に編集するため、このスクリプトから編集できるようにする。
+	UPROPERTY(EditAnywhere)
+	float Mass = 500.f;
+	
+	void UpdateSphereMeshMass();
+	
 protected:
 	virtual void BeginPlay() override;
 

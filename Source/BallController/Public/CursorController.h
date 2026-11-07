@@ -15,12 +15,14 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	GENERATED_BODY()
 
 	private:
-	// スクリーンの中心座標。画面の大きさの変化に対応するため、毎フレーム更新する。
-	FIntPoint ScreenCenterPosition;
-	// 画面中央のレティクルから見たカーソルの相対ベクトル
-	FVector2D CursorVector;
+		// スクリーンの中心座標。画面の大きさの変化に対応するため、毎フレーム更新する。
+		FIntPoint ScreenCenterPosition;
 	
-	void UpdateCursorVector();
+		// 画面中央のレティクルから見たカーソルの相対ベクトル
+		FVector2D CursorVector;
+		
+		// CurSorVectorを計算して更新する処理
+		void UpdateCursorVector();
 
 	protected:
 	virtual void BeginPlay() override;
