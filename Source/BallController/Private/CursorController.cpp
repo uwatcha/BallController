@@ -12,21 +12,6 @@ ACursorController::ACursorController()
 void ACursorController::BeginPlay()
 {
 	Super::BeginPlay();
-	//TODO: PlayerControllerからマウスの情報を取得し、
-	
-	
-	PlayerController = this;
-	ULocalPlayer* LocalPlayer = PlayerController->GetLocalPlayer();
-	
-	//画面の縦横の長さを取得
-	FSceneViewProjectionData ProjectionData;
-	LocalPlayer->GetProjectionData(LocalPlayer->ViewportClient->Viewport, ProjectionData);
-	UE_LOG(LogTemp, Warning, TEXT("Viewport Width: %d"), ProjectionData
-		.GetConstrainedViewRect().Width());
-	UE_LOG(LogTemp, Warning, TEXT("Viewport Height: %d"), ProjectionData
-		.GetConstrainedViewRect().Height());
-	
-	
 }
 
 void ACursorController::Tick(float DeltaTime)
@@ -41,7 +26,7 @@ void ACursorController::Tick(float DeltaTime)
 	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
-	//TODO: BallControllerに、CursorVectorを受け取り、AddForce()に入れる処理を書く。
+	// TODO: BallControllerに、CursorVectorを受け取り、AddForce()に入れる処理を書く。
 }
 
 // レティクルからのマウスの座標へのベクトルを返す
