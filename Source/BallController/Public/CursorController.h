@@ -30,11 +30,11 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		UInputMappingContext* IMC_Debug;
 	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
-		UInputAction* IA_Kill;
+		UInputAction* IA_DebugKill;
 	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
-		UInputAction* IA_Respawn;
-	
+		UInputAction* IA_DebugRespawn;
+		//TODO: 2つのIAをIMCにまとめる
 
 	protected:
 		virtual void BeginPlay() override;
@@ -43,6 +43,4 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	public:
 		ACursorController();
 		FVector2D GetCursorVector() const { return CursorVector; }
-	
-		virtual void SetupPlayerInputComponent(UInputComponent* PlayerInputComponent);
 };

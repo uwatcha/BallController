@@ -40,11 +40,11 @@ private:
 	void UpdateSphereMeshMass();
 	
 protected:
-	virtual void BeginPlay() override;
+	virtual void PossessedBy(AController*) override;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
 	
 	void Move(const FVector2D& InputVector);
-	
+	void Die();
 };

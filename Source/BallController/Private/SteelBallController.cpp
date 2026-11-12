@@ -28,9 +28,9 @@ ASteelBallController::ASteelBallController()
 	UpdateSphereMeshMass();
 }
 
-void ASteelBallController::BeginPlay()
+void ASteelBallController::PossessedBy(AController*)
 {
-	Super::BeginPlay();
+	Super::PossessedBy(GetController());
 	CursorController = Cast<ACursorController>(GetController());
 	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
 }
@@ -38,7 +38,7 @@ void ASteelBallController::BeginPlay()
 void ASteelBallController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-	Move(CursorController->GetCursorVector());
+	if (CursorController != nullptr) Move(CursorController->GetCursorVector());
 	UpdateSphereMeshMass();
 }
 
@@ -94,4 +94,9 @@ void ASteelBallController::UpdateSphereMeshMass()
 	
 	pc->SetMassOverrideInKg(NAME_None, Mass, true);
 	GEngine->AddOnScreenDebugMessage(4, 0.f, FColor::Blue, "Mass: "+FString::FromInt(pc->GetMass())+"kg");
+}
+
+void ASteelBallController::Die()
+{
+	
 }

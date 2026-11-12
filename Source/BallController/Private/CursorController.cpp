@@ -3,6 +3,8 @@
 
 #include "CursorController.h"
 #include "BallController/Public/CursorController.h"
+
+#include "EnhancedInputSubsystems.h"
 #include "Kismet/GameplayStatics.h"
 
 ACursorController::ACursorController()
@@ -12,6 +14,20 @@ ACursorController::ACursorController()
 void ACursorController::BeginPlay()
 {
 	Super::BeginPlay();
+	
+	// IMCをPlayerControllerに登録する処理
+	if (UEnhancedInputLocalPlayerSubsystem* LocalPlayer = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
+	{
+		LocalPlayer->AddMappingContext(IMC_Debug, 0);
+	} 
+	else
+	{
+		UE_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました。"));
+	}
+	
+	if (UEnhancedInputComponent* EnhancedInputComponent)
+	{
+	}
 }
 
 void ACursorController::Tick(float DeltaTime)
