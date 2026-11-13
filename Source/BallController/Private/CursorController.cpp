@@ -2,10 +2,12 @@
 
 
 #include "CursorController.h"
-#include "BallController/Public/CursorController.h"
-
 #include "EnhancedInputSubsystems.h"
-#include "Kismet/GameplayStatics.h"
+#include "ReticleWidget.h"
+
+
+class InputAction;
+class InputMappingContext;
 
 ACursorController::ACursorController()
 {
@@ -25,8 +27,11 @@ void ACursorController::BeginPlay()
 		UE_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました。"));
 	}
 	
-	if (UEnhancedInputComponent* EnhancedInputComponent)
+	// レティクルを取得し、画面上に配置する
+	if (ReticleWidget != nullptr)
 	{
+		ReticleWidgetPtr = CreateWidget<UReticleWidget>(this, ReticleWidget);
+		ReticleWidgetPtr->AddToViewport();
 	}
 }
 
@@ -41,6 +46,10 @@ void ACursorController::Tick(float DeltaTime)
 	// 毎フレーム、GetCursorVectorでマウスの座標を取得し、CursorVectorに入れる
 	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
+	
+	if (IsValid(ReticleWidgetPtr))
+	{
+	}
 }
 
 // レティクルからのマウスの座標へのベクトルを返す

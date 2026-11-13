@@ -3,9 +3,12 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "SteelBallController.h"
 #include "GameFramework/PlayerController.h"
+#include "InputAction.h"
+#include "InputMappingContext.h"
 #include "CursorController.generated.h"
+
+class UReticleWidget;
 
 /**
  * 
@@ -24,6 +27,11 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		
 		// CurSorVectorを計算して更新する処理
 		void UpdateCursorVector();
+		
+		UPROPERTY(EditAnywhere, Category="UI")
+		TSubclassOf<UReticleWidget> ReticleWidget;
+	
+		TObjectPtr<UReticleWidget> ReticleWidgetPtr;
 	
 		// デバッグ用の入力マッピング
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
@@ -34,7 +42,7 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
 		UInputAction* IA_DebugRespawn;
-		//TODO: 2つのIAをIMCにまとめる
+
 
 	protected:
 		virtual void BeginPlay() override;
