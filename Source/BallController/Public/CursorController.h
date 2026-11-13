@@ -28,10 +28,18 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		// CurSorVectorを計算して更新する処理
 		void UpdateCursorVector();
 		
+		// Reticleを配置、マウス位置情報のフラグを取得するためにBPを取得
 		UPROPERTY(EditAnywhere, Category="UI")
 		TSubclassOf<UReticleWidget> ReticleWidget;
-	
 		TObjectPtr<UReticleWidget> ReticleWidgetPtr;
+	
+		// マウスがReticle外に行った時のForce
+		UPROPERTY(EditAnywhere, Category="Parameter", meta=(UIMin=0, UIMax=3000, ClampMin=0, ClampMax=3000))
+		float MaxForce = 800;
+	
+		// マウスがReticleの中心点にある時にブレーキのためにかける力
+		UPROPERTY(EditAnywhere, Category="Parameter", meta=(UIMin=0, UIMax=2000, ClampMin=0, ClampMax=2000))
+		float FrictionForce = 100;
 	
 		// デバッグ用の入力マッピング
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
@@ -42,6 +50,10 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 	
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
 		UInputAction* IA_DebugRespawn;
+	
+		FVector2D ClampScalarToMax(FVector2D Vector);
+		
+		FVector2D CutForceAtMaxSpeed(FVector2D Vector, float MaxSpeed);
 
 
 	protected:

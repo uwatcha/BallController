@@ -25,16 +25,16 @@ private:
 	ACursorController* CursorController;
 	
 	// 鉄球に加える力の倍数
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Parameter")
 	float ForceVectorScale = 100.f;
 	
 	// 加える力を、true: 加速度, false: 力 として扱う。
 	// 直接加速度を与えると、SteelBallの重さを無視することができる。
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Parameter")
 	bool UseAcceleration = false;
 	
 	// SteelBallの質量(kg)。上記のフィールドと同時に編集するため、このスクリプトから編集できるようにする。
-	UPROPERTY(EditAnywhere)
+	UPROPERTY(EditAnywhere, Category="Parameter")
 	float Mass = 500.f;
 	
 	void UpdateSphereMeshMass();
