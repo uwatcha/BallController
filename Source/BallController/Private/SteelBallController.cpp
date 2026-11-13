@@ -28,10 +28,10 @@ ASteelBallController::ASteelBallController()
 	UpdateSphereMeshMass();
 }
 
-void ASteelBallController::PossessedBy(AController*)
+void ASteelBallController::PossessedBy(AController* Controller)
 {
-	Super::PossessedBy(GetController());
-	CursorController = Cast<ACursorController>(GetController());
+	Super::PossessedBy(Controller);
+	CursorController = Cast<ACursorController>(Controller);
 	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
 }
 
