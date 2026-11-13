@@ -4,6 +4,7 @@
 #include "CursorController.h"
 #include "EnhancedInputSubsystems.h"
 #include "ReticleWidget.h"
+#include "MyPrimaryDataAsset.h"
 
 
 class InputAction;
@@ -16,6 +17,8 @@ ACursorController::ACursorController()
 void ACursorController::BeginPlay()
 {
 	Super::BeginPlay();
+	ApplyTuningData();
+	if (TuningData == nullptr) UE_LOG(LogTemp, Warning, TEXT("CursorController: TuningDataが未設定です。既定値を使います。"));
 	
 	// IMCをPlayerControllerに登録する処理
 	if (UEnhancedInputLocalPlayerSubsystem* LocalPlayer = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
@@ -38,6 +41,10 @@ void ACursorController::BeginPlay()
 void ACursorController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+#if WITH_EDITOR
+	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
+	ApplyTuningData();
+#endif
 	// スクリーンの中心座標を取得、更新
 	FIntPoint viewportSize;
 	GetViewportSize(viewportSize.X, viewportSize.Y);
@@ -50,6 +57,13 @@ void ACursorController::Tick(float DeltaTime)
 	if (IsValid(ReticleWidgetPtr))
 	{
 	}
+}
+
+void ACursorController::ApplyTuningData()
+{
+	if (TuningData == nullptr) return;
+	MaxForce = TuningData->MaxForce;
+	FrictionForce = TuningData->FrictionForce;
 }
 
 // レティクルからのマウスの座標へのベクトルを返す

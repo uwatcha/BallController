@@ -9,6 +9,7 @@
 #include "CursorController.generated.h"
 
 class UReticleWidget;
+class UMyPrimaryDataAsset;
 
 /**
  * 
@@ -33,13 +34,23 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		TSubclassOf<UReticleWidget> ReticleWidget;
 		TObjectPtr<UReticleWidget> ReticleWidgetPtr;
 	
+		// 調整値をまとめたDataAsset
+		// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
+		UPROPERTY(EditAnywhere, Category="Parameter")
+		TObjectPtr<UMyPrimaryDataAsset> TuningData;
+	
+		// 以下はTuningDataから反映される値。ここでは編集せず、DataAsset側で編集する
+	
 		// マウスがReticle外に行った時のForce
-		UPROPERTY(EditAnywhere, Category="Parameter", meta=(UIMin=0, UIMax=3000, ClampMin=0, ClampMax=3000))
-		float MaxForce = 800;
+		UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+		float MaxForce = 100;
 	
 		// マウスがReticleの中心点にある時にブレーキのためにかける力
-		UPROPERTY(EditAnywhere, Category="Parameter", meta=(UIMin=0, UIMax=2000, ClampMin=0, ClampMax=2000))
+		UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 		float FrictionForce = 100;
+	
+		// TuningDataの値を上のフィールドにコピーする
+		void ApplyTuningData();
 	
 		// デバッグ用の入力マッピング
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))

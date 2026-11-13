@@ -3,6 +3,7 @@
 #include "SteelBallController.h"
 
 #include "CursorController.h"
+#include "MyPrimaryDataAsset.h"
 #include "EnhancedInputComponent.h" // 入力イベントと処理関数を紐づける
 #include "EnhancedInputSubsystems.h" // プレイヤーごとの入力設定を管理する
 
@@ -35,9 +36,35 @@ void ASteelBallController::PossessedBy(AController* Controller)
 	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
 }
 
+void ASteelBallController::BeginPlay()
+{
+	Super::BeginPlay();
+	ApplyTuningData();
+	if (TuningData == nullptr) UE_LOG(LogTemp, Warning, TEXT("SteelBallController: TuningDataが未設定です。既定値を使います。"));
+}
+
+void ASteelBallController::OnConstruction(const FTransform& Transform)
+{
+	Super::OnConstruction(Transform);
+	ApplyTuningData();
+}
+
+void ASteelBallController::ApplyTuningData()
+{
+	// 未設定なら既定値のまま (警告はBeginPlayで1回だけ出す)
+	if (TuningData == nullptr) return;
+	ForceVectorScale = TuningData->ForceVectorScale;
+	UseAcceleration = TuningData->UseAcceleration;
+	Mass = TuningData->Mass;
+}
+
 void ASteelBallController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+#if WITH_EDITOR
+	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
+	ApplyTuningData();
+#endif
 	if (CursorController != nullptr) Move(CursorController->GetCursorVector());
 	UpdateSphereMeshMass();
 }

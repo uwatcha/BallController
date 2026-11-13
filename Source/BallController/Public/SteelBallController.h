@@ -12,6 +12,7 @@
 
 class UInputMappingContext;
 class UInputAction;
+class UMyPrimaryDataAsset;
 
 UCLASS()
 class BALLCONTROLLER_API ASteelBallController : public APawn
@@ -24,23 +25,35 @@ public:
 private:
 	ACursorController* CursorController;
 	
-	// 鉄球に加える力の倍数
+	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
+	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
 	UPROPERTY(EditAnywhere, Category="Parameter")
+	TObjectPtr<UMyPrimaryDataAsset> TuningData;
+	
+	// 以下はTuningDataから反映される値。ここでは編集せず、DataAsset側で編集する
+	
+	// 鉄球に加える力の倍数
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float ForceVectorScale = 100.f;
 	
 	// 加える力を、true: 加速度, false: 力 として扱う。
-	// 直接加速度を与えると、SteelBallの重さを無視することができる。
-	UPROPERTY(EditAnywhere, Category="Parameter")
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	bool UseAcceleration = false;
 	
-	// SteelBallの質量(kg)。上記のフィールドと同時に編集するため、このスクリプトから編集できるようにする。
-	UPROPERTY(EditAnywhere, Category="Parameter")
+	// SteelBallの質量(kg)
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float Mass = 500.f;
+	
+	// TuningDataの値を上のフィールドにコピーする
+	void ApplyTuningData();
 	
 	void UpdateSphereMeshMass();
 	
 protected:
 	virtual void PossessedBy(AController*) override;
+	virtual void BeginPlay() override;
+	// エディタ上で配置・変更された時にも呼ばれる。詳細パネルの表示に反映するため
+	virtual void OnConstruction(const FTransform& Transform) override;
 
 public:	
 	virtual void Tick(float DeltaTime) override;
