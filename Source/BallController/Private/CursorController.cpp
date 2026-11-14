@@ -5,6 +5,7 @@
 #include "EnhancedInputSubsystems.h"
 #include "ReticleWidget.h"
 #include "MyPrimaryDataAsset.h"
+#include "BallLog.h"
 
 
 class InputAction;
@@ -18,7 +19,7 @@ void ACursorController::BeginPlay()
 {
 	Super::BeginPlay();
 	ApplyTuningData();
-	if (TuningData == nullptr) UE_LOG(LogTemp, Warning, TEXT("CursorController: TuningDataが未設定です。既定値を使います。"));
+	if (TuningData == nullptr) SB_LOG(LogTemp, Warning, TEXT("CursorController: TuningDataが未設定です。既定値を使います。"));
 	
 	// IMCをPlayerControllerに登録する処理
 	if (UEnhancedInputLocalPlayerSubsystem* LocalPlayer = ULocalPlayer::GetSubsystem<UEnhancedInputLocalPlayerSubsystem>(this->GetLocalPlayer()))
@@ -27,7 +28,8 @@ void ACursorController::BeginPlay()
 	} 
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました。"));
+		SB_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました。"));
+		return;
 	}
 	
 	// レティクルを取得し、画面上に配置する

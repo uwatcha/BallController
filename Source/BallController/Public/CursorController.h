@@ -55,15 +55,19 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 		// デバッグ用の入力マッピング
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
 		UInputMappingContext* IMC_Debug;
-	
+		
+		// デバッグ用の即キル入力
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
 		UInputAction* IA_DebugKill;
 	
+		// デバッグ用の即リスポーン入力
 		UPROPERTY(EditAnywhere, BlueprintReadOnly, Category="Input", meta=(AllowPrivateAccess="true"))
 		UInputAction* IA_DebugRespawn;
 	
+		// ForceのベクトルのスカラーがMaxを超えないように補正する
 		FVector2D ClampScalarToMax(FVector2D Vector);
 		
+		// MaxSpeedに至った時にForceを0にする
 		FVector2D CutForceAtMaxSpeed(FVector2D Vector, float MaxSpeed);
 
 
