@@ -24,6 +24,7 @@ public:
 
 private:
 	ACursorController* CursorController;
+	UPrimitiveComponent* SphereMesh;
 	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
@@ -51,7 +52,8 @@ private:
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
 	
-	void UpdateSphereMeshMass();
+	// Meshにエディタでのパラメータの変更を適用する
+	void ApplySphereMeshMass() const;
 	
 protected:
 	virtual void PossessedBy(AController*) override;
@@ -62,6 +64,6 @@ protected:
 public:	
 	virtual void Tick(float DeltaTime) override;
 	
-	void Move(const FVector2D& InputVector);
+	void Move(const FVector2D& InputVector) const;
 	void Die();
 };

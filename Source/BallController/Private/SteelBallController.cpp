@@ -4,11 +4,10 @@
 
 #include "CursorController.h"
 #include "MyPrimaryDataAsset.h"
-#include "EnhancedInputComponent.h" // 入力イベントと処理関数を紐づける
-#include "EnhancedInputSubsystems.h" // プレイヤーごとの入力設定を管理する
+#include "Components/SphereComponent.h"
 
 #include "Engine/LocalPlayer.h"
-#include "Kismet/GameplayStatics.h"
+#include "BallLog.h"
 
 /* StudyMemo ===============
 キー入力
@@ -23,24 +22,30 @@ InputComponent
 // Sets default values
 ASteelBallController::ASteelBallController()
 {
-	// Set this pawn to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	UE_LOG(LogTemp, Warning, TEXT("ASteelBallController::Constructor"));
 	PrimaryActorTick.bCanEverTick = true;
-	UpdateSphereMeshMass();
 }
 
 void ASteelBallController::PossessedBy(AController* Controller)
 {
 	Super::PossessedBy(Controller);
-	CursorController = Cast<ACursorController>(Controller);
-	if (CursorController == nullptr) UE_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
+	
+	if (!((CursorController = Cast<ACursorController>(Controller))))
+	{
+		SB_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
+		return;
+	}
+	
+	if (!((SphereMesh = Cast<UPrimitiveComponent>(this->GetRootComponent()))))
+	{
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshの取得に失敗"));
+	}
 }
 
 void ASteelBallController::BeginPlay()
 {
 	Super::BeginPlay();
 	ApplyTuningData();
-	if (TuningData == nullptr) UE_LOG(LogTemp, Warning, TEXT("SteelBallController: TuningDataが未設定です。既定値を使います。"));
+	if (TuningData == nullptr) SB_LOG(LogTemp, Warning, TEXT("SteelBallController: TuningDataが未設定です。既定値を使います。"));
 }
 
 void ASteelBallController::OnConstruction(const FTransform& Transform)
@@ -64,16 +69,24 @@ void ASteelBallController::Tick(float DeltaTime)
 #if WITH_EDITOR
 	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
 	ApplyTuningData();
+	
+	if (SphereMesh == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
+		return;
+	}
+	float speed = SphereMesh->GetPhysicsLinearVelocity().Size();
+	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Blue, TEXT("Speed(cmps): "), speed);
 #endif
 	if (CursorController != nullptr) Move(CursorController->GetCursorVector());
-	UpdateSphereMeshMass();
+	ApplySphereMeshMass();
 }
 
 /**
  * SteelBallを加速度を与えることで動かす
  * @param InputVector ACursorController::GetCursorVector()で取得する、マウスによる鉄球の入力ベクトル
  */
-void ASteelBallController::Move(const FVector2D& InputVector)
+void ASteelBallController::Move(const FVector2D& InputVector) const
 {
 	// コントローラーの取得に失敗した時の処理
 	if (Controller == nullptr)
@@ -83,11 +96,23 @@ void ASteelBallController::Move(const FVector2D& InputVector)
 	}
 	
 	// Controller->Pawn->ルートのコンポーネントからSteelBallのモデルを取得。問題があれば関数を即終了
-	UPrimitiveComponent* SphereMesh = Cast<UPrimitiveComponent>(Controller->GetPawn()->GetRootComponent());
+	// UPrimitiveComponent* SphereMesh = Cast<UPrimitiveComponent>(Controller->GetPawn()->GetRootComponent());
 	if (SphereMesh == nullptr || !SphereMesh->IsSimulatingPhysics()) return;
 	
 	// カメラのYaw角 (垂直軸に対する回転角度) を取得する。移動方向ベクトルを求めるときの基準に用いる
-	const FRotator CameraRotation = Cast<APlayerController>(Controller)->PlayerCameraManager->GetCameraRotation();
+	const APlayerController* PC = Cast<APlayerController>(Controller);
+	if (PC == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("PlayerControllerの取得に失敗"));
+		return;
+	}
+	const APlayerCameraManager* PCM = PC->PlayerCameraManager;
+	if (PCM == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("PlayerCameraManagerの取得に失敗"));
+		return;
+	}	
+	const FRotator CameraRotation = PCM->GetCameraRotation();
 	const FRotator YawRotation = FRotator(0, CameraRotation.Yaw, 0);
 	
 	// カメラから見た、X, Y軸方向の基準となるベクトルを作成する
@@ -103,24 +128,15 @@ void ASteelBallController::Move(const FVector2D& InputVector)
 	GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
 }
 
-void ASteelBallController::UpdateSphereMeshMass()
+void ASteelBallController::ApplySphereMeshMass() const
 {
-	// UPrimitiveComponentの取得処理
-	USceneComponent* rootComponent = this->GetRootComponent();
-	if (rootComponent == nullptr)
+	if (SphereMesh == nullptr)
 	{
-		UE_LOG(LogTemp, Error, TEXT("rootComponentの取得に失敗しました。"));
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
 		return;
 	}
-	UPrimitiveComponent* pc = Cast<UPrimitiveComponent>(rootComponent);
-	if (pc == nullptr)
-	{
-		UE_LOG(LogTemp, Error, TEXT("UPrimitiveComponentの取得に失敗しました。"));
-		return;
-	}
-	
-	pc->SetMassOverrideInKg(NAME_None, Mass, true);
-	GEngine->AddOnScreenDebugMessage(4, 0.f, FColor::Blue, "Mass: "+FString::FromInt(pc->GetMass())+"kg");
+	SphereMesh->SetMassOverrideInKg(NAME_None, Mass, true);
+	GEngine->AddOnScreenDebugMessage(4, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
 }
 
 void ASteelBallController::Die()
