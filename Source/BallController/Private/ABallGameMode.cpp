@@ -3,18 +3,20 @@
 #include "SteelBallController.h"
 #include "Kismet/GameplayStatics.h"
 
+class ASteelBallController;
+
 ABallGameMode::ABallGameMode()
 {
 	PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
 	
 }
 
-bool ABallGameMode::RespawnPlayer(AController*)
+bool ABallGameMode::RespawnPlayer(AController* AController)
 {
 	// レベル中にSteelBallが生存していれば死ぬ処理を呼び出す
-	if (APawn* Pawn = PlayerController->GetPawn())
+	if (APawn* Pawn = Cast<APlayerController>(AController)->GetPawn())
 	{
-		if (ASteelBallController* SteelBallController = Pawn->GetComponentByClass<ASteelBallController>())
+		if (ASteelBallController* SteelBallController = Cast<ASteelBallController>(Pawn))
 		{
 			SteelBallController->Die();
 		}
