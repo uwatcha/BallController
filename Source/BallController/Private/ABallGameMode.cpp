@@ -2,6 +2,7 @@
 
 #include "SteelBallController.h"
 #include "Kismet/GameplayStatics.h"
+#include "BallLog.h"
 
 class ASteelBallController;
 
@@ -22,13 +23,13 @@ bool ABallGameMode::RespawnPlayer(AController* AController)
 		}
 		else
 		{
-			UE_LOG(LogTemp, Error, TEXT("SteelBallControllerの取得に失敗しました。"));
+			SB_LOG(LogTemp, Error, TEXT("SteelBallControllerの取得に失敗しました。"));
 			return false;
 		}	
 	}
 	else
 	{
-		UE_LOG(LogTemp, Error, TEXT("Pawnの取得に失敗しました。"));
+		SB_LOG(LogTemp, Error, TEXT("Pawnの取得に失敗しました。"));
 		return false;
 	}
 	
