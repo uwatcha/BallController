@@ -42,4 +42,7 @@ public:
 	// SteelBallの質量(kg)
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, Units="kg"))
 	float Mass = 500.f;
+	
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, Units="cm/s"))
+	float MaxSpeed = 1000.f;
 };

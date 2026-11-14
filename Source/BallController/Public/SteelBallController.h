@@ -44,6 +44,10 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float Mass = 500.f;
 	
+	// SteelBallの最高速度
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	float MaxSpeed = 1000.f;
+	
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
 	
