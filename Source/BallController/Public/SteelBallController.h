@@ -24,7 +24,7 @@ private:
 	UPROPERTY()
 	UPrimitiveComponent* SphereMesh;
 	
-	// MaxSpeedに至っている間はForceを0にする
+	// MaxSpeedに至っている間は、入力から進行方向に加速させる成分を取り除く
 	FVector2D RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const;
 	
 	// SphereMeshのSpeedを取得する手順を関数化

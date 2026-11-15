@@ -152,31 +152,26 @@ void ASteelBallController::Die()
 
 FVector2D ASteelBallController::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const
 {
-	// SteelBallのスピードがMaxSpeedを超えていれば、(0, 0)のベクトルを返す。
-	// そうでなければ、引数をそのまま返す。
 	const TCHAR* CutState;
 	FVector2D ResultVector;
 	if (GetSphereMeshSpeed() >= MaxSpeed)
 	{
-		// 入力ベクトルの a 方向のベクトルを取り出す (b)
-		// b と a の向きが同じなら、b を 0 にする
-		
 		// 現在の速度ベクトル
 		const FVector CurrentVelocity = SphereMesh->GetPhysicsLinearVelocity();
 		
 		// InputVectorの、CurrentVelocityの成分を取り出す
-		FVector InputAlongVelocityVector = FVector(InputVector, 0.f).ProjectOnTo(CurrentVelocity);
+		const FVector InputAlongVelocityVector = FVector(InputVector, 0.f).ProjectOnTo(CurrentVelocity);
 		
 		// InputVectorの進行方向成分の正負を判定するため、内積を計算する
 		const float InnerProduct = FVector2D::DotProduct(FVector2D(CurrentVelocity).GetSafeNormal(), FVector2D(InputAlongVelocityVector).GetSafeNormal());
 		
 		// InputVector に進行方向の成分が含まれていれば、それを除去したものを入力としてMoveに渡す
 		// 正規化したベクトルの内積は、2ベクトル間が0度なら1に、180度なら-1になる
-		if (InnerProduct == 1)
+		if (FMath::IsNearlyEqual(InnerProduct, 1.f, UE_KINDA_SMALL_NUMBER))
 		{
 			ResultVector = FVector2D(FVector::VectorPlaneProject(FVector(InputVector, 0), InputAlongVelocityVector.GetSafeNormal()));
 		}
-		else if (InnerProduct == -1)
+		else if (FMath::IsNearlyEqual(InnerProduct, -1.f, UE_KINDA_SMALL_NUMBER) || FMath::IsNearlyZero(InnerProduct, UE_KINDA_SMALL_NUMBER))
 		{
 			ResultVector = InputVector;
 		}
