@@ -26,6 +26,13 @@ private:
 	ACursorController* CursorController;
 	UPrimitiveComponent* SphereMesh;
 	
+	// MaxSpeedに至っている間はForceを0にする
+	FVector2D CutForceAtMaxSpeed(FVector2D Vector);
+	
+	// マウスカーソルが
+	void DampSpeed();
+	
+	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
 	UPROPERTY(EditAnywhere, Category="Parameter")

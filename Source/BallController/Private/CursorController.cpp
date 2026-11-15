@@ -80,10 +80,6 @@ void ACursorController::UpdateCursorVector()
 	
 	// マウスがReticle外にある時、スカラーをMaxForceにする
 	
-	// MaxSpeedに至っている時、Forceを0にする
-	
-	// マウスがReticle中心点にある時、Dampingを上げる
-	
 	// マウス座標の、レティクルからの相対ベクトルを計算し、CursorPositionに反映する
 	FVector2D relativeVector = mousePosition - reticlePosition;
 	CursorVector = bInside ? relativeVector : FVector2D(0, 0);

@@ -119,6 +119,10 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	
+	// MaxSpeedに至っている時、Forceを0にする
+	
+	// マウスがReticle中心点にある時、Dampingを上げる
+	
 	// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
 	FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
 	FVector ForceVector = (ForwardDirection * WorldInputVector.X) + (RightDirection * WorldInputVector.Y);
