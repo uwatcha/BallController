@@ -59,7 +59,7 @@ void ACursorController::Tick(float DeltaTime)
 	
 	// 毎フレーム、GetCursorVectorでマウスの座標を取得し、CursorVectorに入れる
 	UpdateCursorVector();
-	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
 	// SteelBallを動かす
 	SteelBall->Move(CursorVector);
@@ -77,16 +77,45 @@ void ACursorController::UpdateCursorVector()
 {
 	// マウスのスクリーン座標を取得する
 	FVector2D mousePosition;
-	const bool bInside = GetMousePosition(mousePosition.X, mousePosition.Y);
+	
+	// マウスが画面内にあるかどうか
+	const bool IsMouseInScreen = GetMousePosition(mousePosition.X, mousePosition.Y);
 	
 	// レティクルからのマウスの相対ベクトルを計算する
 	FVector2D reticlePosition = ScreenCenterPosition;
 	
-	// マウスがReticle外にある時、スカラーをMaxForceにする
-	
-	// マウス座標の、レティクルからの相対ベクトルを計算し、CursorPositionに反映する
+	// マウス座標の、レティクルからの相対ベクトルを計算する
 	FVector2D relativeVector = mousePosition - reticlePosition;
-	CursorVector = bInside ? relativeVector : FVector2D(0, 0);
+	
+	FVector2D ResultVector = relativeVector;
+	
+	// マウスがReticle外にある時、スカラーをMaxForceにする
+	if (ReticleWidgetPtr == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("ReticleWidgetが取得できていない"));
+		return;
+	}
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInCircle: %d"), ReticleWidgetPtr->IsMouseInCircle));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInPoint: %d"), ReticleWidgetPtr->IsMouseInPoint));
+	
+	const TCHAR* ClampState = nullptr;
+	if (!ReticleWidgetPtr->IsMouseInCircle)
+	{
+		ResultVector = ClampScalarToMax(relativeVector);
+		ClampState = TEXT("enable");
+	}
+	else
+	{
+		ClampState = TEXT("disable");
+	}
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("ClampScalarToMax: %s"), ClampState));
+	
+	CursorVector = IsMouseInScreen ? ResultVector : FVector2D(0, 0);
 }
 
-
+FVector2D ACursorController::ClampScalarToMax(FVector2D Vector) const
+{
+	// `GetSafeNormal()`でベクトルの長さを1にしてから、MaxForceをかけて長さがMaxForceのベクトルを作成する
+	const FVector2D ClampedVector = Vector.GetSafeNormal() * MaxForce;
+	return ClampedVector;
+}

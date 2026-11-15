@@ -36,6 +36,7 @@ private:
 	// Reticleを配置、マウス位置情報のフラグを取得するためにBPを取得
 	UPROPERTY(EditAnywhere, Category="UI")
 	TSubclassOf<UReticleWidget> ReticleWidget;
+	UPROPERTY()
 	TObjectPtr<UReticleWidget> ReticleWidgetPtr;
 
 	// 調整値をまとめたDataAsset
@@ -69,7 +70,7 @@ private:
 	UInputAction* IA_DebugRespawn;
 
 	// ForceのベクトルのスカラーがMaxを超えないように補正する
-	FVector2D ClampScalarToMax(FVector2D Vector);
+	FVector2D ClampScalarToMax(FVector2D Vector) const;
 
 protected:
 	virtual void BeginPlay() override;

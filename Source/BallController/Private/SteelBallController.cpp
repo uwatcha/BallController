@@ -73,7 +73,7 @@ void ASteelBallController::Tick(float DeltaTime)
 		return;
 	}
 	float speed = SphereMesh->GetPhysicsLinearVelocity().Size();
-	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), speed));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), speed));
 #endif
 	
 	ApplySphereMeshMass();
@@ -88,7 +88,7 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	// コントローラーの取得に失敗した時の処理
 	if (Controller == nullptr)
 	{
-		GEngine->AddOnScreenDebugMessage(3, 0.f, FColor::Red, TEXT("Controllerが無効です。"));
+		GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Red, TEXT("Controllerが無効です。"));
 		return;
 	}
 	
@@ -126,7 +126,7 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	
 	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
-	GEngine->AddOnScreenDebugMessage(2, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
 }
 
 void ASteelBallController::ApplySphereMeshMass() const
@@ -137,7 +137,7 @@ void ASteelBallController::ApplySphereMeshMass() const
 		return;
 	}
 	SphereMesh->SetMassOverrideInKg(NAME_None, Mass, true);
-	GEngine->AddOnScreenDebugMessage(4, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
 }
 
 void ASteelBallController::Die()
