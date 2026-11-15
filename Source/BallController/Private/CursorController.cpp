@@ -38,15 +38,20 @@ void ACursorController::BeginPlay()
 		ReticleWidgetPtr = CreateWidget<UReticleWidget>(this, ReticleWidget);
 		ReticleWidgetPtr->AddToViewport();
 	}
+	
+	// Pawnをこのクラス内にキャッシュする
+	SteelBall = Cast<ASteelBallController>(this->GetPawn());
 }
 
 void ACursorController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 #if WITH_EDITOR
 	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
 	ApplyTuningData();
 #endif
+	
 	// スクリーンの中心座標を取得、更新
 	FIntPoint viewportSize;
 	GetViewportSize(viewportSize.X, viewportSize.Y);
@@ -56,9 +61,8 @@ void ACursorController::Tick(float DeltaTime)
 	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(1, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
-	if (IsValid(ReticleWidgetPtr))
-	{
-	}
+	// SteelBallを動かす
+	SteelBall->Move(CursorVector);
 }
 
 void ACursorController::ApplyTuningData()

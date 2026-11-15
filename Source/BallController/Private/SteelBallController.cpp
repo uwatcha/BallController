@@ -29,12 +29,7 @@ void ASteelBallController::PossessedBy(AController* Controller)
 {
 	Super::PossessedBy(Controller);
 	
-	if (!((CursorController = Cast<ACursorController>(Controller))))
-	{
-		SB_LOG(LogTemp, Error, TEXT("CursorControllerの取得に失敗"));
-		return;
-	}
-	
+	// SphereMeshの取得
 	if (!((SphereMesh = Cast<UPrimitiveComponent>(this->GetRootComponent()))))
 	{
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshの取得に失敗"));
@@ -66,10 +61,12 @@ void ASteelBallController::ApplyTuningData()
 void ASteelBallController::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
+	
 #if WITH_EDITOR
 	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
 	ApplyTuningData();
 	
+	// 速度の画面表示
 	if (SphereMesh == nullptr)
 	{
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
@@ -78,7 +75,7 @@ void ASteelBallController::Tick(float DeltaTime)
 	float speed = SphereMesh->GetPhysicsLinearVelocity().Size();
 	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), speed));
 #endif
-	if (CursorController != nullptr) Move(CursorController->GetCursorVector());
+	
 	ApplySphereMeshMass();
 }
 

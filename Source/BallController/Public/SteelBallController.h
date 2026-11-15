@@ -3,9 +3,7 @@
 #pragma once
 
 #include "CoreMinimal.h"
-#include "CursorController.h"
 #include "GameFramework/Pawn.h"
-#include "InputActionValue.h"
 // UPROPATYなどのUE専用の記述をコンパイルできるようにするためのもの
 // StudyMemo: ~~.generated.hは最後にincludeする必要がある
 #include "SteelBallController.generated.h"
@@ -23,15 +21,10 @@ public:
 	ASteelBallController();
 
 private:
-	ACursorController* CursorController;
 	UPrimitiveComponent* SphereMesh;
 	
 	// MaxSpeedに至っている間はForceを0にする
 	FVector2D CutForceAtMaxSpeed(FVector2D Vector);
-	
-	// マウスカーソルが
-	void DampSpeed();
-	
 	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
@@ -64,7 +57,9 @@ private:
 	
 protected:
 	virtual void PossessedBy(AController*) override;
+	
 	virtual void BeginPlay() override;
+	
 	// エディタ上で配置・変更された時にも呼ばれる。詳細パネルの表示に反映するため
 	virtual void OnConstruction(const FTransform& Transform) override;
 
@@ -72,5 +67,10 @@ public:
 	virtual void Tick(float DeltaTime) override;
 	
 	void Move(const FVector2D& InputVector) const;
+	
+	// 速度を減衰させ、SteelBallを停止させる
+	// マウスカーソルが中心点にある時に呼び出す
+	void DampSpeedToStop();
+	
 	void Die();
 };

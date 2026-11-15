@@ -6,6 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
+#include "SteelBallController.h"
 #include "CursorController.generated.h"
 
 class UReticleWidget;
@@ -22,8 +23,11 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 private:
 	// スクリーンの中心座標。画面の大きさの変化に対応するため、毎フレーム更新する。
 	FIntPoint ScreenCenterPosition;
+	
+	// 
+	ASteelBallController* SteelBall;
 
-	// 画面中央のレティクルから見たカーソルの相対ベクトル
+	// 画面中央から見たカーソルの相対ベクトル
 	FVector2D CursorVector;
 
 	// CurSorVectorを計算して更新する処理
@@ -73,5 +77,4 @@ protected:
 
 public:
 	ACursorController();
-	FVector2D GetCursorVector() const { return CursorVector; }
 };
