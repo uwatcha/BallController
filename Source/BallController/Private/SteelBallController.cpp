@@ -34,6 +34,8 @@ void ASteelBallController::PossessedBy(AController* Controller)
 	{
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshの取得に失敗"));
 	}
+	
+	ApplyTuningData();
 }
 
 void ASteelBallController::BeginPlay()
@@ -55,7 +57,20 @@ void ASteelBallController::ApplyTuningData()
 	if (TuningData == nullptr) return;
 	ForceVectorScale = TuningData->ForceVectorScale;
 	UseAcceleration = TuningData->UseAcceleration;
+	MaxSpeed = TuningData->MaxSpeed;
 	Mass = TuningData->Mass;
+	ApplySphereMeshMass();
+}
+
+void ASteelBallController::ApplySphereMeshMass() const
+{
+	if (SphereMesh == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
+		return;
+	}
+	SphereMesh->SetMassOverrideInKg(NAME_None, Mass, true);
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
 }
 
 void ASteelBallController::Tick(float DeltaTime)
