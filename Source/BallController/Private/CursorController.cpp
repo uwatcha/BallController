@@ -89,15 +89,18 @@ void ACursorController::UpdateCursorVector()
 	
 	FVector2D ResultVector = relativeVector;
 	
-	// マウスがReticle外にある時、スカラーをMaxForceにする
+	// ====== マウスがReticle外にある時、スカラーをMaxForceにする ======
 	if (ReticleWidgetPtr == nullptr)
 	{
 		SB_LOG(LogTemp, Error, TEXT("ReticleWidgetが取得できていない"));
 		return;
 	}
+	
+	// IsMouseInCircle, IsMouseInPointの表示
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInCircle: %d"), ReticleWidgetPtr->IsMouseInCircle));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInPoint: %d"), ReticleWidgetPtr->IsMouseInPoint));
 	
+	// マウスがサークル外にある時、ForceのベクトルのスカラーをMaxに補正する
 	const TCHAR* ClampState = nullptr;
 	if (!ReticleWidgetPtr->IsMouseInCircle)
 	{
@@ -109,7 +112,9 @@ void ACursorController::UpdateCursorVector()
 		ClampState = TEXT("disable");
 	}
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("ClampScalarToMax: %s"), ClampState));
+	// ======                                             ======
 	
+	// CursorVectorを更新する。マウスがスクリーン外にあれば、ベクトルは(0, 0)。
 	CursorVector = IsMouseInScreen ? ResultVector : FVector2D(0, 0);
 }
 

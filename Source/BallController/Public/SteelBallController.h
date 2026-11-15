@@ -21,6 +21,7 @@ public:
 	ASteelBallController();
 
 private:
+	UPROPERTY()
 	UPrimitiveComponent* SphereMesh;
 	
 	// MaxSpeedに至っている間はForceを0にする
