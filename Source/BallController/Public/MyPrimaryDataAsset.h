@@ -40,9 +40,9 @@ public:
 	// ===== SteelBall|Physics : 鉄球の物理パラメータ =====
 	
 	// SteelBallの質量(kg)
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, Units="kg"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, UIMax = 5000, ClampMax = 5000, Units="kg"))
 	float Mass = 500.f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, Units="cm/s"))
-	float MaxSpeed = 1000.f;
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 1000, ClampMax = 1000, ForceUnits="cm/s"))
+	float MaxSpeed = 200.f;
 };

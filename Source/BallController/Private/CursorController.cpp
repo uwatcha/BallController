@@ -6,6 +6,7 @@
 #include "ReticleWidget.h"
 #include "MyPrimaryDataAsset.h"
 #include "BallLog.h"
+#include "string"
 
 
 class InputAction;

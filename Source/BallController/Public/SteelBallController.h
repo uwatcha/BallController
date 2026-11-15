@@ -25,7 +25,10 @@ private:
 	UPrimitiveComponent* SphereMesh;
 	
 	// MaxSpeedに至っている間はForceを0にする
-	FVector2D CutForceAtMaxSpeed(FVector2D Vector);
+	FVector2D RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const;
+	
+	// SphereMeshのSpeedを取得する手順を関数化
+	float GetSphereMeshSpeed() const;
 	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる

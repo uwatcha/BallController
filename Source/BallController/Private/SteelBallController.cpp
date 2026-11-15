@@ -87,11 +87,9 @@ void ASteelBallController::Tick(float DeltaTime)
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
 		return;
 	}
-	float speed = SphereMesh->GetPhysicsLinearVelocity().Size();
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), speed));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), GetSphereMeshSpeed()));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f"), MaxSpeed));
 #endif
-	
-	ApplySphereMeshMass();
 }
 
 /**
@@ -136,26 +134,77 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	// マウスがReticle中心点にある時、Dampingを上げる
 	
 	// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
-	FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
-	FVector ForceVector = (ForwardDirection * WorldInputVector.X) + (RightDirection * WorldInputVector.Y);
+	const FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
+	
+	const FVector2D CutVector = RemoveAccelerationAtMaxSpeed(WorldInputVector);
+	
+	const FVector ForceVector = (ForwardDirection * CutVector.X) + (RightDirection * CutVector.Y);
 	
 	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
 }
 
-void ASteelBallController::ApplySphereMeshMass() const
-{
-	if (SphereMesh == nullptr)
-	{
-		SB_LOG(LogTemp, Error, TEXT("SphereMeshを取得できていません。"));
-		return;
-	}
-	SphereMesh->SetMassOverrideInKg(NAME_None, Mass, true);
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
-}
-
 void ASteelBallController::Die()
 {
 	
+}
+
+FVector2D ASteelBallController::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const
+{
+	// SteelBallのスピードがMaxSpeedを超えていれば、(0, 0)のベクトルを返す。
+	// そうでなければ、引数をそのまま返す。
+	const TCHAR* CutState;
+	FVector2D ResultVector;
+	if (GetSphereMeshSpeed() >= MaxSpeed)
+	{
+		// 入力ベクトルの a 方向のベクトルを取り出す (b)
+		// b と a の向きが同じなら、b を 0 にする
+		
+		// 現在の速度ベクトル
+		const FVector CurrentVelocity = SphereMesh->GetPhysicsLinearVelocity();
+		
+		// InputVectorの、CurrentVelocityの成分を取り出す
+		FVector InputAlongVelocityVector = FVector(InputVector, 0.f).ProjectOnTo(CurrentVelocity);
+		
+		// InputVectorの進行方向成分の正負を判定するため、内積を計算する
+		const float InnerProduct = FVector2D::DotProduct(FVector2D(CurrentVelocity).GetSafeNormal(), FVector2D(InputAlongVelocityVector).GetSafeNormal());
+		
+		// InputVector に進行方向の成分が含まれていれば、それを除去したものを入力としてMoveに渡す
+		// 正規化したベクトルの内積は、2ベクトル間が0度なら1に、180度なら-1になる
+		if (InnerProduct == 1)
+		{
+			ResultVector = FVector2D(FVector::VectorPlaneProject(FVector(InputVector, 0), InputAlongVelocityVector.GetSafeNormal()));
+		}
+		else if (InnerProduct == -1)
+		{
+			ResultVector = InputVector;
+		}
+		else
+		{
+			ResultVector = InputVector;
+			SB_LOG(LogTemp, Error, TEXT("計算ミスってる"));
+		}
+		
+		CutState = TEXT("CutState: enable");
+	}
+	else
+	{
+		ResultVector = InputVector;
+		CutState = TEXT("CutState: disable");
+	}
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, CutState);
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AccelerationRemovedVector: %s"), *ResultVector.ToString()));
+	return ResultVector;
+}
+
+float ASteelBallController::GetSphereMeshSpeed() const
+{
+	if (SphereMesh == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshが取得できていません"));
+		return 0.0f;
+	}
+	
+	return SphereMesh->GetPhysicsLinearVelocity().Size();
 }
