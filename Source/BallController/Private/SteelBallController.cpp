@@ -76,7 +76,7 @@ void ASteelBallController::Tick(float DeltaTime)
 		return;
 	}
 	float speed = SphereMesh->GetPhysicsLinearVelocity().Size();
-	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Blue, TEXT("Speed(cmps): "), speed);
+	GEngine->AddOnScreenDebugMessage(6, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), speed));
 #endif
 	if (CursorController != nullptr) Move(CursorController->GetCursorVector());
 	ApplySphereMeshMass();
