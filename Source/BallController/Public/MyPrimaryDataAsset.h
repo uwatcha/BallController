@@ -6,6 +6,16 @@
 #include "Engine/DataAsset.h"
 #include "MyPrimaryDataAsset.generated.h"
 
+/** マウスがReticleの中心点にある時に、どちらのDampingで鉄球を減速させるか */
+UENUM(BlueprintType)
+enum class ESteelBallDampType : uint8
+{
+	// 移動速度そのものを減衰させる
+	Linear,
+	// 回転速度を減衰させる（転がりにブレーキをかける）
+	Angular,
+};
+
 /**
  * 鉄球の操作に関する調整値をまとめたDataAsset
  * CursorController, SteelBallController がこのアセットを参照して値を読む
@@ -51,4 +61,8 @@ public:
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 100, ClampMax = 100))
 	float AngularDamping = 10;
+	
+	// マウスがReticleの中心点にある時に使うDampingの種類
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics")
+	ESteelBallDampType DampType = ESteelBallDampType::Angular;
 };

@@ -61,6 +61,7 @@ void ASteelBallController::ApplyTuningData()
 	Mass = TuningData->Mass;
 	LinearDamping = TuningData->LinearDamping;
 	AngularDamping = TuningData->AngularDamping;
+	DampType = TuningData->DampType;
 	ApplySphereMeshMass();
 }
 
@@ -215,5 +216,9 @@ void ASteelBallController::SwitchDamp(bool bIsActive)
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshが取得できていません"));
 		return;
 	}
-	bIsActive ? SphereMesh->SetAngularDamping(AngularDamping) : SphereMesh->SetAngularDamping(INITIAL_ANGULAR_DAMPING);
+	// DampTypeで選ばれた方だけを強め、もう片方は常に初期値に戻す
+	// (プレイ中にDampTypeを切り替えても、前の種類の減衰が残らないようにするため)
+	const bool bUseLinear = (DampType == ESteelBallDampType::Linear);
+	SphereMesh->SetLinearDamping((bIsActive && bUseLinear) ? LinearDamping : INITIAL_LINEAR_DAMPING);
+	SphereMesh->SetAngularDamping((bIsActive && !bUseLinear) ? AngularDamping : INITIAL_ANGULAR_DAMPING);
 }

@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "GameFramework/Pawn.h"
+#include "MyPrimaryDataAsset.h" // ESteelBallDampType を UPROPERTY で使うため
 // UPROPATYなどのUE専用の記述をコンパイルできるようにするためのもの
 // StudyMemo: ~~.generated.hは最後にincludeする必要がある
 #include "SteelBallController.generated.h"
@@ -64,6 +65,9 @@ private:
 	float LinearDamping = 10;
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float AngularDamping = 10;
+	// 中心点にある時に使うDampingの種類
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	ESteelBallDampType DampType = ESteelBallDampType::Angular;
 	
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
