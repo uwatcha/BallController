@@ -10,15 +10,15 @@
  * 使い方:
  *   #include "BallLog.h"
  *   SB_LOG(LogTemp, Warning, TEXT("Speed = %f"), Speed);
- *   → [ASteelBallController::Move:91] Speed = 0.500000
+ *   → [ASteelBallPawn::Move:91] Speed = 0.500000
  *
  * Format は UE_LOG と同じく TEXT("...") の文字列リテラルで渡すこと
  * （先頭の "[%s:%d] " とリテラル同士で連結するため）。
  */
 
 // Clang (Mac / Rider / Xcode) の __FUNCTION__ はクラス名を含まない ("Move" だけ) ので、
-// __PRETTY_FUNCTION__ ("void ASteelBallController::Move(const FInputActionValue &)") から切り出す。
-// MSVC の __FUNCTION__ は最初から "ASteelBallController::Move" 形式。
+// __PRETTY_FUNCTION__ ("void ASteelBallPawn::Move(const FInputActionValue &)") から切り出す。
+// MSVC の __FUNCTION__ は最初から "ASteelBallPawn::Move" 形式。
 #if defined(__clang__) || defined(__GNUC__)
 	#define SB_LOG_FUNC_SIG __PRETTY_FUNCTION__
 #else

@@ -7,19 +7,19 @@
 #include "MyPrimaryDataAsset.h" // ESteelBallDampType を UPROPERTY で使うため
 // UPROPATYなどのUE専用の記述をコンパイルできるようにするためのもの
 // StudyMemo: ~~.generated.hは最後にincludeする必要がある
-#include "SteelBallController.generated.h"
+#include "SteelBallPawn.generated.h"
 
 class UInputMappingContext;
 class UInputAction;
 class UMyPrimaryDataAsset;
 
 UCLASS()
-class BALLCONTROLLER_API ASteelBallController : public APawn
+class BALLCONTROLLER_API ASteelBallPawn : public APawn
 {
 	GENERATED_BODY()
 
 public:
-	ASteelBallController();
+	ASteelBallPawn();
 
 private:
 	UPROPERTY()

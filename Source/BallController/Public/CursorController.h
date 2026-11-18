@@ -6,7 +6,7 @@
 #include "GameFramework/PlayerController.h"
 #include "InputAction.h"
 #include "InputMappingContext.h"
-#include "SteelBallController.h"
+#include "SteelBallPawn.h"
 #include "CursorController.generated.h"
 
 class UReticleWidget;
@@ -21,7 +21,7 @@ private:
 	// スクリーンの中心座標。画面の大きさの変化に対応するため、毎フレーム更新する。
 	FIntPoint ScreenCenterPosition;
 	UPROPERTY()
-	ASteelBallController* SteelBall;
+	ASteelBallPawn* SteelBall;
 
 	// 画面中央から見たカーソルの相対ベクトル
 	FVector2D CursorVector;

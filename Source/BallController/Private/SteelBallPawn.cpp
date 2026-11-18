@@ -1,6 +1,6 @@
 // Fill out your copyright notice in the Description page of Project Settings.
 
-#include "SteelBallController.h"
+#include "SteelBallPawn.h"
 
 #include "CursorController.h"
 #include "MyPrimaryDataAsset.h"
@@ -20,12 +20,12 @@ InputComponent
 =============================*/
 
 // Sets default values
-ASteelBallController::ASteelBallController()
+ASteelBallPawn::ASteelBallPawn()
 {
 	PrimaryActorTick.bCanEverTick = true;
 }
 
-void ASteelBallController::PossessedBy(AController* Controller)
+void ASteelBallPawn::PossessedBy(AController* Controller)
 {
 	Super::PossessedBy(Controller);
 	
@@ -40,20 +40,20 @@ void ASteelBallController::PossessedBy(AController* Controller)
 	ApplyTuningData();
 }
 
-void ASteelBallController::BeginPlay()
+void ASteelBallPawn::BeginPlay()
 {
 	Super::BeginPlay();
 	ApplyTuningData();
-	if (TuningData == nullptr) SB_LOG(LogTemp, Warning, TEXT("SteelBallController: TuningDataが未設定です。既定値を使います。"));
+	if (TuningData == nullptr) SB_LOG(LogTemp, Warning, TEXT("SteelBallPawn: TuningDataが未設定です。既定値を使います。"));
 }
 
-void ASteelBallController::OnConstruction(const FTransform& Transform)
+void ASteelBallPawn::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 	ApplyTuningData();
 }
 
-void ASteelBallController::ApplyTuningData()
+void ASteelBallPawn::ApplyTuningData()
 {
 	// 未設定なら既定値のまま (警告はBeginPlayで1回だけ出す)
 	if (TuningData == nullptr) return;
@@ -67,7 +67,7 @@ void ASteelBallController::ApplyTuningData()
 	ApplySphereMeshMass();
 }
 
-void ASteelBallController::ApplySphereMeshMass() const
+void ASteelBallPawn::ApplySphereMeshMass() const
 {
 	if (SphereMesh == nullptr)
 	{
@@ -78,7 +78,7 @@ void ASteelBallController::ApplySphereMeshMass() const
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "Mass: "+FString::FromInt(SphereMesh->GetMass())+"kg");
 }
 
-void ASteelBallController::Tick(float DeltaTime)
+void ASteelBallPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
@@ -104,7 +104,7 @@ void ASteelBallController::Tick(float DeltaTime)
  * SteelBallを加速度を与えることで動かす
  * @param InputVector ACursorController::GetCursorVector()で取得する、カーソルによる鉄球の入力ベクトル
  */
-void ASteelBallController::Move(const FVector2D& InputVector) const
+void ASteelBallPawn::Move(const FVector2D& InputVector) const
 {
 	// コントローラーの取得に失敗した時の処理
 	if (Controller == nullptr)
@@ -157,12 +157,12 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "ForceVector: "+ForceVector.ToString());
 }
 
-void ASteelBallController::Die()
+void ASteelBallPawn::Die()
 {
 	
 }
 
-FVector2D ASteelBallController::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const
+FVector2D ASteelBallPawn::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const
 {
 	const TCHAR* CutState;
 	FVector2D ResultVector;
@@ -205,7 +205,7 @@ FVector2D ASteelBallController::RemoveAccelerationAtMaxSpeed(FVector2D InputVect
 	return ResultVector;
 }
 
-float ASteelBallController::GetSphereMeshSpeed() const
+float ASteelBallPawn::GetSphereMeshSpeed() const
 {
 	if (SphereMesh == nullptr)
 	{
@@ -216,7 +216,7 @@ float ASteelBallController::GetSphereMeshSpeed() const
 	return SphereMesh->GetPhysicsLinearVelocity().Size();
 }
 
-void ASteelBallController::SwitchDamp(bool bIsActive)
+void ASteelBallPawn::SwitchDamp(bool bIsActive)
 {
 	if (SphereMesh == nullptr)
 	{

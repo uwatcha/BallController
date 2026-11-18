@@ -1,10 +1,10 @@
 #include "ABallGameMode.h"
 
-#include "SteelBallController.h"
+#include "SteelBallPawn.h"
 #include "Kismet/GameplayStatics.h"
 #include "BallLog.h"
 
-class ASteelBallController;
+class ASteelBallPawn;
 
 ABallGameMode::ABallGameMode()
 {
@@ -17,13 +17,13 @@ bool ABallGameMode::RespawnPlayer(AController* AController)
 	// レベル中にSteelBallが生存していれば死ぬ処理を呼び出す
 	if (APawn* Pawn = Cast<APlayerController>(AController)->GetPawn())
 	{
-		if (ASteelBallController* SteelBallController = Cast<ASteelBallController>(Pawn))
+		if (ASteelBallPawn* SteelBallPawn = Cast<ASteelBallPawn>(Pawn))
 		{
-			SteelBallController->Die();
+			SteelBallPawn->Die();
 		}
 		else
 		{
-			SB_LOG(LogTemp, Error, TEXT("SteelBallControllerの取得に失敗しました。"));
+			SB_LOG(LogTemp, Error, TEXT("SteelBallPawnの取得に失敗しました。"));
 			return false;
 		}	
 	}

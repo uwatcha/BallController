@@ -52,7 +52,7 @@ void ACursorController::OnPossess(APawn* InPawn)
 	Super::OnPossess(InPawn);
 	
 	// Pawnをこのクラス内にキャッシュ
-	if (!((SteelBall = Cast<ASteelBallController>(InPawn))))
+	if (!((SteelBall = Cast<ASteelBallPawn>(InPawn))))
 	{
 		SB_LOG(LogTemp, Error, TEXT("SteelBallPawnの取得に失敗しました"));
 		return;
@@ -82,7 +82,7 @@ void ACursorController::BindSteelBallDelegates()
 	// 未登録のものだけ登録する（二重登録を防ぐ）
 	if (!SwitchDampDelegateHandle.IsValid())
 	{
-		SwitchDampDelegateHandle = OnPoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
+		SwitchDampDelegateHandle = OnPoint.AddUObject(SteelBall, &ASteelBallPawn::SwitchDamp);
 	}
 	if (!SetIsForceEnabledDelegateHandle.IsValid())
 	{

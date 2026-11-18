@@ -18,7 +18,7 @@ enum class ESteelBallDampType : uint8
 
 /**
  * 鉄球の操作に関する調整値をまとめたDataAsset
- * CursorController, SteelBallController がこのアセットを参照して値を読む
+ * CursorController, SteelBallPawn がこのアセットを参照して値を読む
  */
 UCLASS(BlueprintType)
 class BALLCONTROLLER_API UMyPrimaryDataAsset : public UPrimaryDataAsset
