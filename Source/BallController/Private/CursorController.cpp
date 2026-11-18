@@ -92,7 +92,7 @@ void ACursorController::BindSteelBallDelegates()
 	// デリゲートは「出入りした瞬間」にしか呼ばれないため、登録直後に今の状態を反映しておく
 	const bool bIsCursorInPoint = ReticleWidgetPtr->IsCursorInPoint();
 	SteelBall->SwitchDamp(bIsCursorInPoint);
-	SteelBall->SetIsForceEnabled(bIsCursorInPoint);
+	SteelBall->SetIsForceEnabled(!bIsCursorInPoint);
 }
 
 void ACursorController::UnbindSteelBallDelegates()
@@ -117,7 +117,7 @@ void ACursorController::UnbindSteelBallDelegates()
 	if (SteelBall != nullptr)
 	{
 		SteelBall->SwitchDamp(false);
-		SteelBall->SetIsForceEnabled(false);
+		SteelBall->SetIsForceEnabled(true);
 	}
 }
 

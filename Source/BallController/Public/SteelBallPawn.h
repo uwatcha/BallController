@@ -95,7 +95,7 @@ public:
 	/// カーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SwitchDamp(bool bIsActive);
 	
-	/// bIsForceEnabled: {true: Forceを0にする、false: Forceをそのまま渡す} この分岐のためのフラグ
+	/// bIsForceEnabled: {true: Forceをそのまま渡す、false: Forceを0にする} この分岐のためのフラグ
 	/// カーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SetIsForceEnabled(bool bIsEnabled) { bIsForceEnabled = bIsEnabled; }
 	
