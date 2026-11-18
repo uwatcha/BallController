@@ -27,7 +27,7 @@ void ACursorController::BeginPlay()
 	} 
 	else
 	{
-		SB_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました。"));
+		SB_LOG(LogTemp, Error, TEXT("UEnhancedInputLocalPlayerSubsystemの取得に失敗しました"));
 		return;
 	}
 	
@@ -36,6 +36,11 @@ void ACursorController::BeginPlay()
 	{
 		ReticleWidgetPtr = CreateWidget<UReticleWidget>(this, ReticleWidget);
 		ReticleWidgetPtr->AddToViewport();
+	}
+	else
+	{
+		SB_LOG(LogTemp, Error, TEXT("ReticleWidgetの取得に失敗しました"));
+		return;
 	}
 	
 	// SwitchDampをデリゲートに登録する。
@@ -120,6 +125,11 @@ void ACursorController::Tick(float DeltaTime)
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
 	// SteelBallを動かす
+	if (SteelBall == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("SteelBallを取得できていません"));
+		return;
+	}
 	SteelBall->Move(CursorVector);
 }
 
@@ -127,7 +137,6 @@ void ACursorController::ApplyTuningData()
 {
 	if (TuningData == nullptr) return;
 	MaxForce = TuningData->MaxForce;
-	FrictionForce = TuningData->FrictionForce;
 }
 
 // レティクルからのマウスの座標へのベクトルを返す
@@ -137,7 +146,7 @@ void ACursorController::UpdateCursorVector()
 	FVector2D mousePosition;
 	
 	// マウスが画面内にあるかどうか
-	const bool IsMouseInScreen = GetMousePosition(mousePosition.X, mousePosition.Y);
+	const bool bIsMouseInScreen = GetMousePosition(mousePosition.X, mousePosition.Y);
 	
 	// レティクルからのマウスの相対ベクトルを計算する
 	FVector2D reticlePosition = ScreenCenterPosition;
@@ -173,7 +182,7 @@ void ACursorController::UpdateCursorVector()
 	// ======                                             ======
 	
 	// CursorVectorを更新する。マウスがスクリーン外にあれば、ベクトルは(0, 0)。
-	CursorVector = IsMouseInScreen ? ResultVector : FVector2D(0, 0);
+	CursorVector = bIsMouseInScreen ? ResultVector : FVector2D(0, 0);
 }
 
 FVector2D ACursorController::ClampScalarToMax(FVector2D Vector) const
