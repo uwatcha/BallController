@@ -102,7 +102,7 @@ void ASteelBallController::Tick(float DeltaTime)
 
 /**
  * SteelBallを加速度を与えることで動かす
- * @param InputVector ACursorController::GetCursorVector()で取得する、マウスによる鉄球の入力ベクトル
+ * @param InputVector ACursorController::GetCursorVector()で取得する、カーソルによる鉄球の入力ベクトル
  */
 void ASteelBallController::Move(const FVector2D& InputVector) const
 {

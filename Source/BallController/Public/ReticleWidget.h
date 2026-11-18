@@ -5,8 +5,8 @@
 #include "ReticleWidget.generated.h"
 
 /// カーソルがPointを出た or 入った時に発火するデリゲート。
-/// @param bIsMouseInPoint true: 入った時、false: 出た時
-DECLARE_MULTICAST_DELEGATE_OneParam(FOnCursorOverReticlePoint, bool bIsMouseInPoint);
+/// @param bIsCursorInPoint true: 入った時、false: 出た時
+DECLARE_MULTICAST_DELEGATE_OneParam(FOnCursorOverReticlePoint, bool bIsCursorInPoint);
 
 UCLASS()
 class BALLCONTROLLER_API UReticleWidget : public UUserWidget
@@ -18,23 +18,23 @@ public:
 	FOnCursorOverReticlePoint OnCursorOverReticlePoint;
 	
 	// フラグのゲッター
-	bool IsMouseInCircle() const { return bIsMouseInCircle; }
-	bool IsMouseInPoint() const { return bIsMouseInPoint; }
+	bool IsCursorInCircle() const { return bIsCursorInCircle; }
+	bool IsCursorInPoint() const { return bIsCursorInPoint; }
 	
 protected:
 	virtual void NativeTick(const FGeometry& MyGeometry, float InDeltaTime) override;
 
 private:
-	/// マウスが画面上のレティクルの外周円の中に入っているかどうか
+	/// カーソルが画面上のレティクルの外周円の中に入っているかどうか
 	/// 超えていれば、CursorControllerでForceが上限より強くならないようにする
 	UPROPERTY(BlueprintReadWrite, meta=(AllowPrivateAccess = "true"))
-	bool bIsMouseInCircle;
+	bool bIsCursorInCircle;
 
-	/// マウス画面上のレティクルの中心点に重なっているかどうか
+	/// カーソルが画面上のレティクルの中心点に重なっているかどうか
 	/// 重なっていれば、摩擦力を発生させ徐々に減速させる
 	UPROPERTY(BlueprintReadWrite, meta=(AllowPrivateAccess = "true"))
-	bool bIsMouseInPoint;
+	bool bIsCursorInPoint;
 	
-	// 前回のループで、MouseがPointの中にあったかどうか
-	bool bWasMouseInPoint = false;
+	// 前回のループで、CursorがPointの中にあったかどうか
+	bool bWasCursorInPoint = false;
 };

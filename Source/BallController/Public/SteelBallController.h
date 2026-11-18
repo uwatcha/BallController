@@ -62,7 +62,7 @@ private:
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float MaxSpeed = 1000.f;
 	
-	// マウスがReticleの中心点にある時の減衰力
+	// カーソルがReticleの中心点にある時の減衰力
 	// ゲーム開発中は、この2種類を用意する。最終的にどちらかに決める。
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float LinearDamping = 10;
@@ -92,11 +92,11 @@ public:
 	void Move(const FVector2D& InputVector) const;
 	
 	/// @param bIsActive true: 速度を減衰させる、false: 減衰状態を解除する
-	/// マウスカーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
+	/// カーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SwitchDamp(bool bIsActive);
 	
 	/// bIsForceEnabled: {true: Forceを0にする、false: Forceをそのまま渡す} この分岐のためのフラグ
-	/// マウスカーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
+	/// カーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SetIsForceEnabled(bool bIsEnabled) { bIsForceEnabled = bIsEnabled; }
 	
 	void Die();

@@ -4,9 +4,9 @@ void UReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)
 {
 	Super::NativeTick(MyGeometry, InDeltaTime);
 	
-	if (bWasMouseInPoint != bIsMouseInPoint)
+	if (bWasCursorInPoint != bIsCursorInPoint)
 	{
-		OnCursorOverReticlePoint.Broadcast(bIsMouseInPoint);
-		bWasMouseInPoint = bIsMouseInPoint;
+		OnCursorOverReticlePoint.Broadcast(bIsCursorInPoint);
+		bWasCursorInPoint = bIsCursorInPoint;
 	}
 }

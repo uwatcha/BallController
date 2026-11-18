@@ -6,7 +6,7 @@
 #include "Engine/DataAsset.h"
 #include "MyPrimaryDataAsset.generated.h"
 
-/** マウスがReticleの中心点にある時に、どちらのDampingで鉄球を減速させるか */
+/** カーソルがReticleの中心点にある時に、どちらのDampingで鉄球を減速させるか */
 UENUM(BlueprintType)
 enum class ESteelBallDampType : uint8
 {
@@ -26,13 +26,13 @@ class BALLCONTROLLER_API UMyPrimaryDataAsset : public UPrimaryDataAsset
 	GENERATED_BODY()
 	
 public:
-	// ===== Cursor|Force : マウス(カーソル)入力から作る力 =====
+	// ===== Cursor|Force : カーソル入力から作る力 =====
 	
-	// マウスがReticle外に行った時のForce
+	// カーソルがReticle外に行った時のForce
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Cursor|Force", meta=(UIMin=0, UIMax=3000, ClampMin=0, ClampMax=3000))
 	float MaxForce = 100.f;
 	
-	// マウスがReticleの中心点にある時にブレーキのためにかける力
+	// カーソルがReticleの中心点にある時にブレーキのためにかける力
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Cursor|Force", meta=(UIMin=0, UIMax=2000, ClampMin=0, ClampMax=2000))
 	float FrictionForce = 100.f;
 	
@@ -62,7 +62,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 100, ClampMax = 100))
 	float AngularDamping = 10;
 	
-	// マウスがReticleの中心点にある時に使うDampingの種類
+	// カーソルがReticleの中心点にある時に使うDampingの種類
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics")
 	ESteelBallDampType DampType = ESteelBallDampType::Angular;
 };

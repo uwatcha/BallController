@@ -54,7 +54,7 @@ private:
 
 	// 以下はTuningDataから反映される値。ここでは編集せず、DataAsset側で編集する
 
-	// マウスがReticle外に行った時のForce
+	// カーソルがReticle外に行った時のForce
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float MaxForce = 100;
 

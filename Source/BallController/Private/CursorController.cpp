@@ -86,13 +86,13 @@ void ACursorController::BindSteelBallDelegates()
 	}
 	if (!SetIsForceEnabledDelegateHandle.IsValid())
 	{
-		SetIsForceEnabledDelegateHandle = OnPoint.AddWeakLambda(SteelBall, [Ball = SteelBall](bool bIsMouseInPoint){Ball->SetIsForceEnabled(!bIsMouseInPoint);});
+		SetIsForceEnabledDelegateHandle = OnPoint.AddWeakLambda(SteelBall, [Ball = SteelBall](bool bIsCursorInPoint){Ball->SetIsForceEnabled(!bIsCursorInPoint);});
 	}
 	
 	// デリゲートは「出入りした瞬間」にしか呼ばれないため、登録直後に今の状態を反映しておく
-	const bool bIsMouseInPoint = ReticleWidgetPtr->IsMouseInPoint();
-	SteelBall->SwitchDamp(bIsMouseInPoint);
-	SteelBall->SetIsForceEnabled(bIsMouseInPoint);
+	const bool bIsCursorInPoint = ReticleWidgetPtr->IsCursorInPoint();
+	SteelBall->SwitchDamp(bIsCursorInPoint);
+	SteelBall->SetIsForceEnabled(bIsCursorInPoint);
 }
 
 void ACursorController::UnbindSteelBallDelegates()
@@ -135,7 +135,7 @@ void ACursorController::Tick(float DeltaTime)
 	GetViewportSize(viewportSize.X, viewportSize.Y);
 	ScreenCenterPosition = viewportSize / 2;
 	
-	// 毎フレーム、GetCursorVectorでマウスの座標を取得し、CursorVectorに入れる
+	// 毎フレーム、GetCursorVectorでカーソルの座標を取得し、CursorVectorに入れる
 	UpdateCursorVector();
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "CursorVector: "+CursorVector.ToString());
 	
@@ -154,37 +154,37 @@ void ACursorController::ApplyTuningData()
 	MaxForce = TuningData->MaxForce;
 }
 
-// レティクルからのマウスの座標へのベクトルを返す
+// レティクルからのカーソルの座標へのベクトルを返す
 void ACursorController::UpdateCursorVector()
 {
-	// マウスのスクリーン座標を取得する
-	FVector2D mousePosition;
+	// カーソルのスクリーン座標を取得する
+	FVector2D cursorPosition;
 	
-	// マウスが画面内にあるかどうか
-	const bool bIsMouseInScreen = GetMousePosition(mousePosition.X, mousePosition.Y);
+	// カーソルが画面内にあるかどうか
+	const bool bIsCursorInScreen = GetMousePosition(cursorPosition.X, cursorPosition.Y);
 	
-	// レティクルからのマウスの相対ベクトルを計算する
+	// レティクルからのカーソルの相対ベクトルを計算する
 	FVector2D reticlePosition = ScreenCenterPosition;
 	
-	// マウス座標の、レティクルからの相対ベクトルを計算する
-	FVector2D relativeVector = mousePosition - reticlePosition;
+	// カーソル座標の、レティクルからの相対ベクトルを計算する
+	FVector2D relativeVector = cursorPosition - reticlePosition;
 	
 	FVector2D ResultVector = relativeVector;
 	
-	// ====== マウスがReticle外にある時、スカラーをMaxForceにする ======
+	// ====== カーソルがReticle外にある時、スカラーをMaxForceにする ======
 	if (ReticleWidgetPtr == nullptr)
 	{
 		SB_LOG(LogTemp, Error, TEXT("ReticleWidgetが取得できていない"));
 		return;
 	}
 	
-	// IsMouseInCircle, IsMouseInPointの表示
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInCircle: %d"), ReticleWidgetPtr->IsMouseInCircle()));
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInPoint: %d"), ReticleWidgetPtr->IsMouseInPoint()));
+	// IsCursorInCircle, IsCursorInPointの表示
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsCursorInCircle: %d"), ReticleWidgetPtr->IsCursorInCircle()));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsCursorInPoint: %d"), ReticleWidgetPtr->IsCursorInPoint()));
 	
-	// マウスがサークル外にある時、ForceのベクトルのスカラーをMaxに補正する
+	// カーソルがサークル外にある時、ForceのベクトルのスカラーをMaxに補正する
 	const TCHAR* ClampState = nullptr;
-	if (!ReticleWidgetPtr->IsMouseInCircle())
+	if (!ReticleWidgetPtr->IsCursorInCircle())
 	{
 		ResultVector = ClampScalarToMax(relativeVector);
 		ClampState = TEXT("enable");
@@ -196,8 +196,8 @@ void ACursorController::UpdateCursorVector()
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("ClampScalarToMax: %s"), ClampState));
 	// ======                                             ======
 	
-	// CursorVectorを更新する。マウスがスクリーン外にあれば、ベクトルは(0, 0)。
-	CursorVector = bIsMouseInScreen ? ResultVector : FVector2D(0, 0);
+	// CursorVectorを更新する。カーソルがスクリーン外にあれば、ベクトルは(0, 0)。
+	CursorVector = bIsCursorInScreen ? ResultVector : FVector2D(0, 0);
 }
 
 FVector2D ACursorController::ClampScalarToMax(FVector2D Vector) const
