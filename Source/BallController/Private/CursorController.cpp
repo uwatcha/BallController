@@ -1,5 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
 
 #include "CursorController.h"
 #include "EnhancedInputSubsystems.h"
@@ -40,8 +38,67 @@ void ACursorController::BeginPlay()
 		ReticleWidgetPtr->AddToViewport();
 	}
 	
-	// Pawnをこのクラス内にキャッシュする
-	SteelBall = Cast<ASteelBallController>(this->GetPawn());
+	// SwitchDampをデリゲートに登録する。
+	// SteelBallを取得できており、デリゲート未登録の場合に登録を行う。
+	if (SteelBall != nullptr && !SwitchDampDelegateHandle.IsValid())
+	{
+		SwitchDampDelegateHandle = ReticleWidgetPtr->OnCursorOverReticlePoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
+		SteelBall->SwitchDamp(false);
+	}
+	else
+	{
+		SB_LOG(LogTemp, Warning, TEXT("SwitchDamp()の登録をスキップしました"));
+		return;
+	}
+}
+
+void ACursorController::OnPossess(APawn* InPawn)
+{
+	Super::OnPossess(InPawn);
+	
+	// Pawnをこのクラス内にキャッシュ
+	if (!((SteelBall = Cast<ASteelBallController>(InPawn))))
+	{
+		SB_LOG(LogTemp, Error, TEXT("SteelBallPawnの取得に失敗しました"));
+		return;
+	}
+	
+	// SwitchDampをデリゲートに登録する。
+	// ReticleWidgetPtrを取得できており、デリゲート未登録の場合に登録を行う。
+	if (ReticleWidgetPtr != nullptr && !SwitchDampDelegateHandle.IsValid())
+	{
+		SwitchDampDelegateHandle = ReticleWidgetPtr->OnCursorOverReticlePoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
+		SteelBall->SwitchDamp(false);
+	}
+	else
+	{
+		SB_LOG(LogTemp, Warning, TEXT("SwitchDamp()の登録をスキップしました"));
+		return;
+	}
+	
+}
+
+void ACursorController::OnUnPossess()
+{
+	// SwitchDampをデリゲートから解除する
+	if (ReticleWidgetPtr != nullptr && SwitchDampDelegateHandle.IsValid())
+	{
+		if (!ReticleWidgetPtr->OnCursorOverReticlePoint.Remove(SwitchDampDelegateHandle))
+		{
+			SB_LOG(LogTemp, Warning, TEXT("SwitchDampのデリゲートからの解除に失敗しました"));
+		}
+	}
+	
+	SwitchDampDelegateHandle.Reset();
+
+	// 古い鉄球の減衰状態を元に戻し、参照を手放す
+	if (SteelBall != nullptr)
+	{
+		SteelBall->SwitchDamp(false);
+		SteelBall = nullptr;
+	}
+
+	Super::OnUnPossess();
 }
 
 void ACursorController::Tick(float DeltaTime)
@@ -98,12 +155,12 @@ void ACursorController::UpdateCursorVector()
 	}
 	
 	// IsMouseInCircle, IsMouseInPointの表示
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInCircle: %d"), ReticleWidgetPtr->IsMouseInCircle));
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInPoint: %d"), ReticleWidgetPtr->IsMouseInPoint));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInCircle: %d"), ReticleWidgetPtr->IsMouseInCircle()));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsMouseInPoint: %d"), ReticleWidgetPtr->IsMouseInPoint()));
 	
 	// マウスがサークル外にある時、ForceのベクトルのスカラーをMaxに補正する
 	const TCHAR* ClampState = nullptr;
-	if (!ReticleWidgetPtr->IsMouseInCircle)
+	if (!ReticleWidgetPtr->IsMouseInCircle())
 	{
 		ResultVector = ClampScalarToMax(relativeVector);
 		ClampState = TEXT("enable");

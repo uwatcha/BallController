@@ -30,12 +30,17 @@ private:
 	// SphereMeshのSpeedを取得する手順を関数化
 	float GetSphereMeshSpeed() const;
 	
+	//
+	const float INITIAL_LINEAR_DAMPING = 0.01f;
+	const float INITIAL_ANGULAR_DAMPING = 0.f;
+	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
 	UPROPERTY(EditAnywhere, Category="Parameter")
 	TObjectPtr<UMyPrimaryDataAsset> TuningData;
 	
-	// 以下はTuningDataから反映される値。ここでは編集せず、DataAsset側で編集する
+	// ====== TuningDataから反映される値 ======
+	// このクラスでは編集せず、DataAsset側で編集する
 	
 	// 鉄球に加える力の倍数
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
@@ -52,6 +57,13 @@ private:
 	// SteelBallの最高速度
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float MaxSpeed = 1000.f;
+	
+	// マウスがReticleの中心点にある時の減衰力
+	// 試しに2種作る
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	float LinearDamping = 10;
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	float AngularDamping = 10;
 	
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
@@ -72,9 +84,9 @@ public:
 	
 	void Move(const FVector2D& InputVector) const;
 	
-	// 速度を減衰させ、SteelBallを停止させる
-	// マウスカーソルが中心点にある時に呼び出す
-	void DampSpeedToStop();
+	/// @param bIsActive true: 速度を減衰させる、false: 減衰状態を解除する
+	/// マウスカーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
+	void SwitchDamp(bool bIsActive);
 	
 	void Die();
 };

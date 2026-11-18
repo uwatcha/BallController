@@ -59,6 +59,8 @@ void ASteelBallController::ApplyTuningData()
 	UseAcceleration = TuningData->UseAcceleration;
 	MaxSpeed = TuningData->MaxSpeed;
 	Mass = TuningData->Mass;
+	LinearDamping = TuningData->LinearDamping;
+	AngularDamping = TuningData->AngularDamping;
 	ApplySphereMeshMass();
 }
 
@@ -89,6 +91,8 @@ void ASteelBallController::Tick(float DeltaTime)
 	}
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), GetSphereMeshSpeed()));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f"), MaxSpeed));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
+	// GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
 #endif
 }
 
@@ -202,4 +206,14 @@ float ASteelBallController::GetSphereMeshSpeed() const
 	}
 	
 	return SphereMesh->GetPhysicsLinearVelocity().Size();
+}
+
+void ASteelBallController::SwitchDamp(bool bIsActive)
+{
+	if (SphereMesh == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("SphereMeshが取得できていません"));
+		return;
+	}
+	bIsActive ? SphereMesh->SetAngularDamping(AngularDamping) : SphereMesh->SetAngularDamping(INITIAL_ANGULAR_DAMPING);
 }

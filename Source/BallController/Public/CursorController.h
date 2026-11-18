@@ -12,9 +12,6 @@
 class UReticleWidget;
 class UMyPrimaryDataAsset;
 
-/**
- * 
- */
 UCLASS()
 class BALLCONTROLLER_API ACursorController : public APlayerController
 {
@@ -23,8 +20,7 @@ class BALLCONTROLLER_API ACursorController : public APlayerController
 private:
 	// スクリーンの中心座標。画面の大きさの変化に対応するため、毎フレーム更新する。
 	FIntPoint ScreenCenterPosition;
-	
-	// 
+	UPROPERTY()
 	ASteelBallController* SteelBall;
 
 	// 画面中央から見たカーソルの相対ベクトル
@@ -32,10 +28,15 @@ private:
 
 	// CurSorVectorを計算して更新する処理
 	void UpdateCursorVector();
-
-	// Reticleを配置、マウス位置情報のフラグを取得するためにBPを取得
+	
+	FDelegateHandle SwitchDampDelegateHandle;
+	
+	// 画面中央に表示されるレティクルのUI
+	// BPから設定するための変数。スクリプト中では使用しない
 	UPROPERTY(EditAnywhere, Category="UI")
 	TSubclassOf<UReticleWidget> ReticleWidget;
+	// レティクルUIをポインタとして保持したもの
+	// スクリプト中でこのUIを使用するときはこちらを用いる
 	UPROPERTY()
 	TObjectPtr<UReticleWidget> ReticleWidgetPtr;
 
@@ -49,10 +50,6 @@ private:
 	// マウスがReticle外に行った時のForce
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float MaxForce = 100;
-
-	// マウスがReticleの中心点にある時にブレーキのためにかける力
-	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
-	float FrictionForce = 100;
 
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
@@ -74,6 +71,8 @@ private:
 
 protected:
 	virtual void BeginPlay() override;
+	virtual void OnPossess(APawn* InPawn) override;
+	virtual void OnUnPossess() override;
 	virtual void Tick(float DeltaTime) override;
 
 public:
