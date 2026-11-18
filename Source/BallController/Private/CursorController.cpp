@@ -43,18 +43,8 @@ void ACursorController::BeginPlay()
 		return;
 	}
 	
-	// SwitchDampをデリゲートに登録する。
-	// SteelBallを取得できており、デリゲート未登録の場合に登録を行う。
-	if (SteelBall != nullptr && !SwitchDampDelegateHandle.IsValid())
-	{
-		SwitchDampDelegateHandle = ReticleWidgetPtr->OnCursorOverReticlePoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
-		SteelBall->SwitchDamp(false);
-	}
-	else
-	{
-		SB_LOG(LogTemp, Warning, TEXT("SwitchDamp()の登録をスキップしました"));
-		return;
-	}
+	// 鉄球の関数をデリゲートに登録する（OnPossessが先に来ていた場合はここで登録される）
+	BindSteelBallDelegates();
 }
 
 void ACursorController::OnPossess(APawn* InPawn)
@@ -68,42 +58,67 @@ void ACursorController::OnPossess(APawn* InPawn)
 		return;
 	}
 	
-	// SwitchDampをデリゲートに登録する。
-	// ReticleWidgetPtrを取得できており、デリゲート未登録の場合に登録を行う。
-	if (ReticleWidgetPtr != nullptr && !SwitchDampDelegateHandle.IsValid())
-	{
-		SwitchDampDelegateHandle = ReticleWidgetPtr->OnCursorOverReticlePoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
-		SteelBall->SwitchDamp(false);
-	}
-	else
-	{
-		SB_LOG(LogTemp, Warning, TEXT("SwitchDamp()の登録をスキップしました"));
-		return;
-	}
-	
+	// 鉄球の関数をデリゲートに登録する（BeginPlayが先に来ていた場合はここで登録される）
+	BindSteelBallDelegates();
 }
 
 void ACursorController::OnUnPossess()
 {
-	// SwitchDampをデリゲートから解除する
-	if (ReticleWidgetPtr != nullptr && SwitchDampDelegateHandle.IsValid())
+	// ここでは途中でreturnしない。
+	UnbindSteelBallDelegates();
+	SteelBall = nullptr;
+
+	Super::OnUnPossess();
+}
+
+void ACursorController::BindSteelBallDelegates()
+{
+	// ウィジェットと鉄球の両方がそろうまでは何もしない。
+	// BeginPlayとOnPossessのどちらが先に来ても、後から来た方で登録される。
+	if (ReticleWidgetPtr == nullptr || SteelBall == nullptr) return;
+	
+	FOnCursorOverReticlePoint& OnPoint = ReticleWidgetPtr->OnCursorOverReticlePoint;
+	
+	// 未登録のものだけ登録する（二重登録を防ぐ）
+	if (!SwitchDampDelegateHandle.IsValid())
 	{
-		if (!ReticleWidgetPtr->OnCursorOverReticlePoint.Remove(SwitchDampDelegateHandle))
+		SwitchDampDelegateHandle = OnPoint.AddUObject(SteelBall, &ASteelBallController::SwitchDamp);
+	}
+	if (!SetIsForceEnabledDelegateHandle.IsValid())
+	{
+		SetIsForceEnabledDelegateHandle = OnPoint.AddWeakLambda(SteelBall, [Ball = SteelBall](bool bIsMouseInPoint){Ball->SetIsForceEnabled(!bIsMouseInPoint);});
+	}
+	
+	// デリゲートは「出入りした瞬間」にしか呼ばれないため、登録直後に今の状態を反映しておく
+	const bool bIsMouseInPoint = ReticleWidgetPtr->IsMouseInPoint();
+	SteelBall->SwitchDamp(bIsMouseInPoint);
+	SteelBall->SetIsForceEnabled(bIsMouseInPoint);
+}
+
+void ACursorController::UnbindSteelBallDelegates()
+{
+	// 登録済みのものだけ解除する
+	if (ReticleWidgetPtr != nullptr)
+	{
+		FOnCursorOverReticlePoint& OnPoint = ReticleWidgetPtr->OnCursorOverReticlePoint;
+		if (SwitchDampDelegateHandle.IsValid() && !OnPoint.Remove(SwitchDampDelegateHandle))
 		{
 			SB_LOG(LogTemp, Warning, TEXT("SwitchDampのデリゲートからの解除に失敗しました"));
 		}
+		if (SetIsForceEnabledDelegateHandle.IsValid() && !OnPoint.Remove(SetIsForceEnabledDelegateHandle))
+		{
+			SB_LOG(LogTemp, Warning, TEXT("SetIsForceEnabledのデリゲートからの解除に失敗しました"));
+		}
 	}
-	
+	// 解除できたかに関わらず、古い登録を指すHandleは捨てる
 	SwitchDampDelegateHandle.Reset();
-
-	// 古い鉄球の減衰状態を元に戻し、参照を手放す
+	SetIsForceEnabledDelegateHandle.Reset();
+	
 	if (SteelBall != nullptr)
 	{
 		SteelBall->SwitchDamp(false);
-		SteelBall = nullptr;
+		SteelBall->SetIsForceEnabled(false);
 	}
-
-	Super::OnUnPossess();
 }
 
 void ACursorController::Tick(float DeltaTime)

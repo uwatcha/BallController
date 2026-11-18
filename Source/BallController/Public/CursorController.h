@@ -29,7 +29,14 @@ private:
 	// CurSorVectorを計算して更新する処理
 	void UpdateCursorVector();
 	
+	// OnCursorOverReticlePoint デリゲートに登録する関数のHandle
 	FDelegateHandle SwitchDampDelegateHandle;
+	FDelegateHandle SetIsForceEnabledDelegateHandle;
+	
+	// 鉄球の関数をReticleWidgetのデリゲートに登録する。BeginPlay, OnPossessから呼ぶ
+	void BindSteelBallDelegates();
+	// 登録した関数をデリゲートから解除し、鉄球の状態を元に戻す。OnUnPossessから呼ぶ
+	void UnbindSteelBallDelegates();
 	
 	// 画面中央に表示されるレティクルのUI
 	// BPから設定するための変数。スクリプト中では使用しない

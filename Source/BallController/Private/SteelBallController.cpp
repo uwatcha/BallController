@@ -35,6 +35,8 @@ void ASteelBallController::PossessedBy(AController* Controller)
 		SB_LOG(LogTemp, Error, TEXT("SphereMeshの取得に失敗"));
 	}
 	
+	bIsForceEnabled = true;
+	
 	ApplyTuningData();
 }
 
@@ -93,6 +95,7 @@ void ASteelBallController::Tick(float DeltaTime)
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), GetSphereMeshSpeed()));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f"), MaxSpeed));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsForceEnable: %s"), bIsForceEnabled ? TEXT("True") : TEXT("False")));
 	// GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
 #endif
 }
@@ -134,20 +137,24 @@ void ASteelBallController::Move(const FVector2D& InputVector) const
 	const FVector ForwardDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::X);
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	
-	// MaxSpeedに至っている時、Forceを0にする
+	FVector ForceVector;
+	if (bIsForceEnabled)
+	{
+		// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
+		const FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
 	
-	// マウスがReticle中心点にある時、Dampingを上げる
+		const FVector2D CutVector = RemoveAccelerationAtMaxSpeed(WorldInputVector);
 	
-	// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
-	const FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
-	
-	const FVector2D CutVector = RemoveAccelerationAtMaxSpeed(WorldInputVector);
-	
-	const FVector ForceVector = (ForwardDirection * CutVector.X) + (RightDirection * CutVector.Y);
+		ForceVector = (ForwardDirection * CutVector.X) + (RightDirection * CutVector.Y);
+	}
+	else
+	{
+		ForceVector = FVector(0,0,0);
+	}
 	
 	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "WorldInputVector: "+WorldInputVector.ToString());
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "ForceVector: "+ForceVector.ToString());
 }
 
 void ASteelBallController::Die()

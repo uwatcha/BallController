@@ -31,9 +31,12 @@ private:
 	// SphereMeshのSpeedを取得する手順を関数化
 	float GetSphereMeshSpeed() const;
 	
-	//
+	// SwitchDamp()で変更する前のDampingを定数として確保しておく
 	const float INITIAL_LINEAR_DAMPING = 0.01f;
 	const float INITIAL_ANGULAR_DAMPING = 0.f;
+	
+	// カーソルが中心点にある時にForceを0にするためのフラグ
+	bool bIsForceEnabled;
 	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
@@ -60,7 +63,7 @@ private:
 	float MaxSpeed = 1000.f;
 	
 	// マウスがReticleの中心点にある時の減衰力
-	// 試しに2種作る
+	// ゲーム開発中は、この2種類を用意する。最終的にどちらかに決める。
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	float LinearDamping = 10;
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
@@ -91,6 +94,10 @@ public:
 	/// @param bIsActive true: 速度を減衰させる、false: 減衰状態を解除する
 	/// マウスカーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SwitchDamp(bool bIsActive);
+	
+	/// bIsForceEnabled: {true: Forceを0にする、false: Forceをそのまま渡す} この分岐のためのフラグ
+	/// マウスカーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
+	void SetIsForceEnabled(bool bIsEnabled) { bIsForceEnabled = bIsEnabled; }
 	
 	void Die();
 };
