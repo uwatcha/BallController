@@ -15,7 +15,6 @@ class BALLCONTROLLER_API ABallGameMode : public AGameModeBase
 		ABallGameMode();
 		bool RespawnPlayer(AController*);
 		FOnPawnDied OnPawnDied;
-	
-	private:
-		APlayerController* PlayerController;
+private: 
+	APlayerController* PlayerController;
 };

@@ -159,7 +159,11 @@ void ASteelBallPawn::Move(const FVector2D& InputVector) const
 
 void ASteelBallPawn::Die()
 {
-	
+	// 呼ばれたことを画面に3秒だけ表示する
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Red, TEXT("IA_DebugKill: Die"));
+	APlayerController* PC = Cast<APlayerController>(Controller);
+	this->Destroy();
+	SB_LOG(LogTemp, Display, TEXT("DIE!!"));
 }
 
 FVector2D ASteelBallPawn::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) const

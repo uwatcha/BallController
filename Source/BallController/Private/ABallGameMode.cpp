@@ -8,32 +8,24 @@ class ASteelBallPawn;
 
 ABallGameMode::ABallGameMode()
 {
-	PlayerController = UGameplayStatics::GetPlayerController(GetWorld(), 0);
-	
 }
 
 bool ABallGameMode::RespawnPlayer(AController* AController)
 {
-	// レベル中にSteelBallが生存していれば死ぬ処理を呼び出す
-	if (APawn* Pawn = Cast<APlayerController>(AController)->GetPawn())
+	if (AController == nullptr)
 	{
-		if (ASteelBallPawn* SteelBallPawn = Cast<ASteelBallPawn>(Pawn))
-		{
-			SteelBallPawn->Die();
-		}
-		else
-		{
-			SB_LOG(LogTemp, Error, TEXT("SteelBallPawnの取得に失敗しました。"));
-			return false;
-		}	
-	}
-	else
-	{
-		SB_LOG(LogTemp, Error, TEXT("Pawnの取得に失敗しました。"));
+		SB_LOG(LogTemp, Error, TEXT("RespawnPlayer: Controllerがnullです。"));
 		return false;
 	}
 	
+	// レベル中にSteelBallが生存していれば、先に死ぬ処理を呼び出す。
+	// Kill済み（Pawnがいない）の場合はそのまま復活させる。
+	if (ASteelBallPawn* SteelBallPawn = Cast<ASteelBallPawn>(AController->GetPawn()))
+	{
+		SteelBallPawn->Die();
+	}
+	
 	// GameModeが再スタートさせる
-	this->RestartPlayer(PlayerController);
+	this->RestartPlayer(AController);
 	return true;
 }

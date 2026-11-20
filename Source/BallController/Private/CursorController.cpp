@@ -1,12 +1,16 @@
 
 #include "CursorController.h"
+
+#include "ABallGameMode.h"
 #include "EnhancedInputSubsystems.h"
+#include "EnhancedInputComponent.h"
 #include "ReticleWidget.h"
 #include "MyPrimaryDataAsset.h"
 #include "BallLog.h"
 #include "string"
 
 
+class ABallGameMode;
 class InputAction;
 class InputMappingContext;
 
@@ -93,6 +97,35 @@ void ACursorController::BindSteelBallDelegates()
 	const bool bIsCursorInPoint = ReticleWidgetPtr->IsCursorInPoint();
 	SteelBall->SwitchDamp(bIsCursorInPoint);
 	SteelBall->SetIsForceEnabled(!bIsCursorInPoint);
+	
+	// InputのBind
+	UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(this->InputComponent);
+	if (EIC == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("EnhancedInputComponentを取得できませんでした。"));
+		return;
+	}
+	// 鉄球が変わるたびにバインドし直す（古い鉄球のバインドはUnbindSteelBallDelegatesで解除済み）
+	if (DebugKillBindingHandle == 0)
+	{
+		DebugKillBindingHandle = EIC->BindAction(
+			IA_DebugKill,
+			ETriggerEvent::Started,
+			SteelBall,
+			&ASteelBallPawn::Die
+		).GetHandle();
+	}
+	// Controller自身の関数なので、リスポーンしても一度だけ
+	if (!bIsDebugRespawnBound)
+	{
+		EIC->BindAction(
+			IA_DebugRespawn,
+			ETriggerEvent::Started,
+			this,
+			&ACursorController::OnDebugRespawn
+			);
+		bIsDebugRespawnBound = true;
+	}
 }
 
 void ACursorController::UnbindSteelBallDelegates()
@@ -113,6 +146,16 @@ void ACursorController::UnbindSteelBallDelegates()
 	// 解除できたかに関わらず、古い登録を指すHandleは捨てる
 	SwitchDampDelegateHandle.Reset();
 	SetIsForceEnabledDelegateHandle.Reset();
+	
+	// 古い鉄球に向いた IA_DebugKill のバインドを解除する
+	if (DebugKillBindingHandle != 0)
+	{
+		if (UEnhancedInputComponent* EIC = Cast<UEnhancedInputComponent>(InputComponent))
+		{
+			EIC->RemoveBindingByHandle(DebugKillBindingHandle);
+		}
+		DebugKillBindingHandle = 0;
+	}
 	
 	if (SteelBall != nullptr)
 	{
@@ -205,4 +248,20 @@ FVector2D ACursorController::ClampScalarToMax(FVector2D Vector) const
 	// `GetSafeNormal()`でベクトルの長さを1にしてから、MaxForceをかけて長さがMaxForceのベクトルを作成する
 	const FVector2D ClampedVector = Vector.GetSafeNormal() * MaxForce;
 	return ClampedVector;
+}
+
+void ACursorController::OnDebugRespawn()
+{
+	// 呼ばれたことを画面に3秒だけ表示する
+	if (GEngine) GEngine->AddOnScreenDebugMessage(-1, 3.f, FColor::Green, TEXT("IA_DebugRespawn: OnDebugRespawn"));
+	ABallGameMode* BallGameMode = GetWorld()->GetAuthGameMode<ABallGameMode>();
+	if (BallGameMode == nullptr)
+	{
+		SB_LOG(LogTemp, Error, TEXT("BallGameModeの取得に失敗しました"));
+		return;
+	}
+	if (!BallGameMode->RespawnPlayer(this))
+	{
+		SB_LOG(LogTemp, Error, TEXT("Respawnに失敗しました"));
+	}
 }

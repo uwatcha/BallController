@@ -33,6 +33,12 @@ private:
 	FDelegateHandle SwitchDampDelegateHandle;
 	FDelegateHandle SetIsForceEnabledDelegateHandle;
 	
+	// デバッグ入力のバインドのHandle（二重バインド防止と解除用）
+	// IA_DebugKill は鉄球ごとにバインドし直すため、Unpossess時に解除する
+	uint32 DebugKillBindingHandle = 0;
+	// IA_DebugRespawn はController自身の関数なので一度だけバインドする
+	bool bIsDebugRespawnBound = false;
+	
 	// 鉄球の関数をReticleWidgetのデリゲートに登録する。BeginPlay, OnPossessから呼ぶ
 	void BindSteelBallDelegates();
 	// 登録した関数をデリゲートから解除し、鉄球の状態を元に戻す。OnUnPossessから呼ぶ
@@ -75,6 +81,8 @@ private:
 
 	// ForceのベクトルのスカラーがMaxを超えないように補正する
 	FVector2D ClampScalarToMax(FVector2D Vector) const;
+	
+	void OnDebugRespawn();
 
 protected:
 	virtual void BeginPlay() override;
