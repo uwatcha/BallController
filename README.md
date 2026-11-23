@@ -33,6 +33,7 @@
 | `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
 | `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23） |
 | `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |
+| `Scripts/ReorganizeContent.py` | Claude | ファイル全体（Content フォルダの不要アセット削除と、種類ごとのフォルダへの移動を UE エディタで行う Python スクリプト。スレッド『Contentフォルダを整理する』11/23） |
 | `BallController.h` / `BallController.cpp` / `*.Target.cs` | UE Template | なし |
 | `BallController.Build.cs` | UE Template | なし（依存モジュールの `EnhancedInput`・`UMG` は自分で追加） |
 
