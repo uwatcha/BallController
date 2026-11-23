@@ -23,3 +23,8 @@ Saved/
 
 # Local config
 *.log
+# Rider / ReSharper user settings
+*.DotSettings.user
+
+# Temporary files from FUSE / network mounts
+.fuse_hidden*
