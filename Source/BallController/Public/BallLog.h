@@ -1,3 +1,4 @@
+// Author: Claude（Claude が実装。README.md「実装者の記録」参照）
 // Fill out your copyright notice in the Description page of Project Settings.
 
 #pragma once

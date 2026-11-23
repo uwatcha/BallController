@@ -1,3 +1,4 @@
+// Author: Claude（Claude が実装。README.md「実装者の記録」参照）
 // DebugDrawSubsystem.cpp
 #include "DebugDrawSubsystem.h"
 #include "Engine/Canvas.h"

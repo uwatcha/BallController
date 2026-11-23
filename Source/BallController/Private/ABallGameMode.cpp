@@ -1,3 +1,4 @@
+// Author: User + Claude（User 主体。一部 Claude が実装。README.md「実装者の記録」参照）
 #include "ABallGameMode.h"
 
 #include "SteelBallPawn.h"

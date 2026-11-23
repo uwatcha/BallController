@@ -1,3 +1,4 @@
+// Author: User（User が実装）
 #include "ReticleWidget.h"
 
 void UReticleWidget::NativeTick(const FGeometry& MyGeometry, float InDeltaTime)

@@ -1,3 +1,4 @@
+// Author: UE Template（UE が自動生成。User が依存モジュールを追加）
 // Fill out your copyright notice in the Description page of Project Settings.
 
 using UnrealBuildTool;

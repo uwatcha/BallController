@@ -1,3 +1,4 @@
+// Author: Claude（Claude が実装。README.md「実装者の記録」参照）
 // DebugDrawSubsystem.h
 #pragma once
 

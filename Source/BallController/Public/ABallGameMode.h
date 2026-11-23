@@ -1,3 +1,4 @@
+// Author: User（User が実装）
 #pragma once
 
 #include "CoreMinimal.h"

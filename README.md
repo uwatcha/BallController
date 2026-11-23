@@ -1,5 +1,49 @@
 # BallController
 
+## 実装者の記録（User / Claude）
+
+2026-11-22 に学習モードを終了しました。これ以降は次の分担で開発します。
+
+- **User（自分）が手で書く:** Pawn（鉄球）の基本動作だけ
+- **Claude が主体で書く:** ステージギミックなど、それ以外の機能（時間短縮のため）
+
+### ルール
+
+- コードファイルの **1行目** に、誰が書いたかをコメントで書く
+  - `// Author: User` … 自分が書いた
+  - `// Author: Claude` … Claude が書いた
+  - `// Author: User + Claude` … 自分が主体で、一部を Claude が書いた（どこを書いたかは下の表に書く）
+  - `// Author: UE Template` … UE が自動で作ったファイル
+- 新しいファイルを作ったら、1行目のコメントを付けて、下の表にも1行足す
+- 既存のファイルを Claude が書き換えたときは、表の「Claude が書いた部分」に追記する
+- 誤字の修正や、名前の一括置換のような機械的な変更は、作者を変えない
+
+### ファイルごとの記録（2026-11-23 時点）
+
+判断の材料は、git の履歴と、Claude のプロジェクトのスレッドでのやり取りです。
+
+| ファイル | 作者 | Claude が書いた部分 |
+|---|---|---|
+| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20） |
+| `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380） |
+| `Private/ABallGameMode.cpp` | User + Claude | `RespawnPlayer()` の書き直し（Pawn がいなくても `RestartPlayer` する形、`AController` の null チェック。11/20、c1d3380） |
+| `Public/ABallGameMode.h` | User | なし |
+| `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226） |
+| `Public/ReticleWidget.h` / `Private/ReticleWidget.cpp` | User | なし |
+| `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
+| `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23） |
+| `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |
+| `BallController.h` / `BallController.cpp` / `*.Target.cs` | UE Template | なし |
+| `BallController.Build.cs` | UE Template | なし（依存モジュールの `EnhancedInput`・`UMG` は自分で追加） |
+
+次の変更は機械的な一括置換で、作者は変えていません（Claude が実行）。
+
+- `UE_LOG` を `SB_LOG` に置き換え（11/14）
+- `AddOnScreenDebugMessage` の Key を `__LINE__` に置き換え（11/15）
+- `SteelBallController` を `SteelBallPawn` に改名（11/18、88c9362）
+
+設計や不具合の原因について Claude に相談し、ヒントをもとに自分で書いた部分は「User」としています。相談の内容は、下の「AI への相談と自分の決定の記録」にまとめています。
+
 ## AI への相談と自分の決定の記録
 
 Claude（AI）とのチャットログと git 履歴から、分かる範囲でまとめた記録です（2026-11-08 時点）。
