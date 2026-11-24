@@ -18,7 +18,7 @@
 - 既存のファイルを Claude が書き換えたときは、表の「Claude が書いた部分」に追記する
 - 誤字の修正や、名前の一括置換のような機械的な変更は、作者を変えない
 
-### ファイルごとの記録（2026-11-23 時点）
+### ファイルごとの記録（2026-11-24 時点）
 
 判断の材料は、git の履歴と、Claude のプロジェクトのスレッドでのやり取りです。
 
@@ -32,6 +32,7 @@
 | `Public/ReticleWidget.h` / `Private/ReticleWidget.cpp` | User | なし |
 | `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
 | `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23） |
+| `Public/BallDoor.h` / `Private/BallDoor.cpp` | Claude | ファイル全体（スイッチと連動して下に沈む扉。色・開く/閉じる速さ・沈む距離・待ち時間を調整可能。スレッド『あの部屋のスイッチを作る』11/24） |
 | `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |
 | `Scripts/ReorganizeContent.py` | Claude | ファイル全体（Content フォルダの不要アセット削除と、種類ごとのフォルダへの移動を UE エディタで行う Python スクリプト。スレッド『Contentフォルダを整理する』11/23） |
 | `BallController.h` / `BallController.cpp` / `*.Target.cs` | UE Template | なし |
