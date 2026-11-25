@@ -5,10 +5,15 @@
 
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
+#include "GameFramework/Pawn.h"
+#include "Kismet/GameplayStatics.h"
 #include "ProceduralMeshComponent.h"
 
 ABallSlopeRoom::ABallSlopeRoom()
 {
+	// 坂の上の鉄球の速さを毎フレーム調整する（ゲーム中だけ）
+	PrimaryActorTick.bCanEverTick = true;
+
 	SideWalls = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("SideWalls"));
 	SideWalls->SetupAttachment(Root);
 	// 当たり判定は、壁1つごとの凸形状（下の AddCollisionConvexMesh）で作る
@@ -174,4 +179,70 @@ void ABallSlopeRoom::AddQuad(const FVector& P0, const FVector& P1, const FVector
 	// 表裏どちらの向きでも見えるように、両回りの三角形を入れる
 	WallTris.Append({ Base, Base + 1, Base + 2, Base, Base + 2, Base + 3 });
 	WallTris.Append({ Base, Base + 2, Base + 1, Base, Base + 3, Base + 2 });
+}
+
+void ABallSlopeRoom::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	if (!bLimitDownhillSpeed && !bNoReverse)
+	{
+		return;
+	}
+	// プレイヤーの鉄球（Pawn のルートの、物理で動いているコンポーネント）
+	const APawn* Pawn = UGameplayStatics::GetPlayerPawn(this, 0);
+	UPrimitiveComponent* Ball = Pawn ? Cast<UPrimitiveComponent>(Pawn->GetRootComponent()) : nullptr;
+	if (Ball && Ball->IsSimulatingPhysics())
+	{
+		ControlBallOnSlope(Ball);
+	}
+}
+
+void ABallSlopeRoom::ControlBallOnSlope(UPrimitiveComponent* Ball) const
+{
+	const float Tan = GetSlopeTan();
+	if (FMath::IsNearlyZero(Tan))
+	{
+		return;
+	}
+
+	// 鉄球の位置を、部屋の中心を原点にした座標にする
+	const FTransform RoomTM = GetActorTransform();
+	const FVector Local = RoomTM.InverseTransformPositionNoScale(Ball->GetComponentLocation()) - GetCenterOffset();
+
+	// 坂の範囲（始点〜終点、幅の中、床から壁の高さまで）にいる時だけ。穴に落ちて床より下に行ったら対象外
+	const float HalfX = RoomSize.X * 0.5f;
+	const float HalfY = RoomSize.Y * 0.5f;
+	const float FloorZ = GetFloorZ(Local.X);
+	if (FMath::Abs(Local.X) > HalfX || FMath::Abs(Local.Y) > HalfY || Local.Z < FloorZ || Local.Z > FloorZ + WallHeight)
+	{
+		return;
+	}
+
+	// 坂を下る向き（坂の面に沿った単位ベクトル）。下り坂なら +X 側、上り坂なら -X 側が下
+	FVector Downhill = FVector(1.f, 0.f, Tan).GetSafeNormal();
+	if (Tan > 0.f)
+	{
+		Downhill = -Downhill;
+	}
+	Downhill = RoomTM.TransformVectorNoScale(Downhill);
+
+	FVector Velocity = Ball->GetPhysicsLinearVelocity();
+	const float Along = FVector::DotProduct(Velocity, Downhill);
+	float NewAlong = Along;
+	if (bNoReverse)
+	{
+		// 登る向きの速さは消す
+		NewAlong = FMath::Max(NewAlong, 0.f);
+	}
+	if (bLimitDownhillSpeed)
+	{
+		NewAlong = FMath::Min(NewAlong, MaxDownhillSpeed);
+	}
+	if (!FMath::IsNearlyEqual(NewAlong, Along))
+	{
+		// 坂に沿った成分だけを置き換える（横方向の速さはそのまま）
+		Velocity += Downhill * (NewAlong - Along);
+		Ball->SetPhysicsLinearVelocity(Velocity);
+	}
 }

@@ -28,6 +28,7 @@ public:
 	ABallSlopeRoom();
 
 	virtual void OnConstruction(const FTransform& Transform) override;
+	virtual void Tick(float DeltaSeconds) override;
 
 protected:
 	// 坂の長さは「Room|Size」の RoomSize の X（水平に測った長さ）、幅は RoomSize の Y で決める
@@ -39,6 +40,20 @@ protected:
 	// 傾斜の角度（度）。0 で平ら
 	UPROPERTY(EditAnywhere, Category="Room|Slope", meta=(ClampMin="0.0", ClampMax="60.0", UIMin="0.0", UIMax="60.0"))
 	float SlopeAngle = 10.f;
+
+	// ===== 坂の上の鉄球（プレイヤー）の動き =====
+
+	// オンなら、鉄球が坂の上にいる間、坂を下る方向の速さを MaxDownhillSpeed までに抑える
+	UPROPERTY(EditAnywhere, Category="Room|Slope|Ball")
+	bool bLimitDownhillSpeed = true;
+
+	// 坂を下る方向の速さの上限 (cm/s)。坂に沿って測る。横（±Y）方向の速さには効かない
+	UPROPERTY(EditAnywhere, Category="Room|Slope|Ball", meta=(ClampMin="0.0", EditCondition="bLimitDownhillSpeed"))
+	float MaxDownhillSpeed = 600.f;
+
+	// オンなら、鉄球が坂の上にいる間、坂を登る方向の速さを毎フレーム 0 にする（逆走できない）
+	UPROPERTY(EditAnywhere, Category="Room|Slope|Ball")
+	bool bNoReverse = true;
 
 	// 終点（+X 側の壁の中心線上、床の上面）の、始点から見た位置 (cm)。次の部屋を置くときの目安。表示だけ
 	UPROPERTY(VisibleAnywhere, Category="Room|Slope")
@@ -56,6 +71,9 @@ protected:
 	virtual FVector GetCenterOffset() const override;
 
 private:
+	// 鉄球が坂の上にいれば、坂に沿った速さを調整する
+	void ControlBallOnSlope(UPrimitiveComponent* Ball) const;
+
 	// 高さ / 水平の長さ（上りは +、下りは -）
 	float GetSlopeTan() const;
 
