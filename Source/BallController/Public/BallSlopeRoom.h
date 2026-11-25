@@ -80,8 +80,9 @@ private:
 	// 部屋の中心から X の位置での、坂の面の高さ（両端で止めない）
 	float SlopeZ(float LocalX) const;
 
-	// X0〜X1, Y0〜Y1 の範囲に、坂と平行な板を置く。TopZOffset = 坂の面から板の上面までの高さ
-	void AddSlopedSlab(float X0, float X1, float Y0, float Y1, float TopZOffset, float Thickness);
+	// X0〜X1, Y0〜Y1 の範囲に、坂と平行な板を置く。TopZOffset = 坂の面から板の上面までの高さ。
+	// bAsFloor = 床として置く（床の穴の対象になる）。false なら天井
+	void AddSlopedSlab(float X0, float X1, float Y0, float Y1, float TopZOffset, float Thickness, bool bAsFloor);
 
 	// X0〜X1 の範囲に、上端と下端が坂と平行で両端が垂直な壁を1つ追加する
 	void AddSlopedWall(float X0, float X1, float Normal, float ZFrom, float ZTo);

@@ -5,7 +5,11 @@
 
 #include "BallDoor.h"
 
+#include "Components/DynamicMeshComponent.h"
 #include "Components/InstancedStaticMeshComponent.h"
+#include "UDynamicMesh.h"
+#include "GeometryScript/MeshBooleanFunctions.h"
+#include "GeometryScript/MeshPrimitiveFunctions.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
 #include "Materials/MaterialInstanceDynamic.h"
@@ -46,6 +50,10 @@ ABallRoom::ABallRoom()
 	FloorBoxes = MakeBoxes(this, Root, TEXT("FloorBoxes"), Cube);
 	WallBoxes = MakeBoxes(this, Root, TEXT("WallBoxes"), Cube);
 
+	FloorMesh = CreateDefaultSubobject<UDynamicMeshComponent>(TEXT("FloorMesh"));
+	FloorMesh->SetupAttachment(Root);
+	FloorMesh->SetCollisionProfileName(UCollisionProfile::BlockAll_ProfileName);
+
 	static ConstructorHelpers::FObjectFinder<UMaterialInterface> BasicMat(TEXT("/Engine/BasicShapes/BasicShapeMaterial.BasicShapeMaterial"));
 	if (BasicMat.Succeeded())
 	{
@@ -67,11 +75,21 @@ void ABallRoom::Rebuild()
 	// 坂の部屋などは、部屋の中心をアクターの位置からずらす
 	FloorBoxes->SetRelativeLocation(GetCenterOffset());
 	WallBoxes->SetRelativeLocation(GetCenterOffset());
+	FloorMesh->SetRelativeLocation(GetCenterOffset());
+	FloorMesh->GetDynamicMesh()->Reset();
 
+	// 床の穴があるときは、床を FloorMesh に作ってから穴をくり抜く
+	bFloorToMesh = bFloor && FloorHoles.Num() > 0;
 	if (bFloor)
 	{
 		BuildFloor();
 	}
+	if (bFloorToMesh)
+	{
+		CutFloorHoles();
+	}
+	// 当たり判定はメッシュの形そのもの（穴のふちも正確に当たる）
+	FloorMesh->SetComplexAsSimpleCollisionEnabled(true, true);
 	if (bCeiling)
 	{
 		BuildCeiling();
@@ -84,6 +102,7 @@ void ABallRoom::Rebuild()
 
 	ApplyColor(FloorBoxes, FloorColor, FloorMaterial);
 	ApplyColor(WallBoxes, WallColor, WallMaterial);
+	FloorMesh->SetMaterial(0, FloorBoxes->GetMaterial(0));
 
 	FitDoors();
 }
@@ -100,9 +119,80 @@ void ABallRoom::BuildFloor()
 		const float Y1 =  RoomSize.Y * 0.5f - (bWallPlusY  ? HalfT : 0.f);
 		if (X1 > X0 && Y1 > Y0)
 		{
-			AddBox(FloorBoxes, FVector((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, -FloorThickness * 0.5f),
+			AddFloorBox(FVector((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, -FloorThickness * 0.5f),
 				FVector(X1 - X0, Y1 - Y0, FloorThickness));
 		}
+	}
+}
+
+void ABallRoom::AddFloorBox(const FVector& Center, const FVector& Size, const FQuat& Rotation)
+{
+	if (!bFloorToMesh)
+	{
+		AddBox(FloorBoxes, Center, Size, Rotation);
+		return;
+	}
+	UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendBox(FloorMesh->GetDynamicMesh(), FGeometryScriptPrimitiveOptions(),
+		FTransform(Rotation, Center), Size.X, Size.Y, Size.Z, 0, 0, 0, EGeometryScriptPrimitiveOriginMode::Center);
+}
+
+void ABallRoom::CutFloorHoles()
+{
+	if (!HoleToolMesh)
+	{
+		HoleToolMesh = NewObject<UDynamicMesh>(this);
+	}
+	UDynamicMesh* Floor = FloorMesh->GetDynamicMesh();
+	const FVector2D Center2D(GetCenterOffset());
+	const int32 Segs = FMath::Clamp(HoleCornerSegments, 1, 32);
+
+	for (const FRoomFloorHole& Hole : FloorHoles)
+	{
+		const float W = FMath::Max(Hole.Size.X, 1.f);
+		const float D = FMath::Max(Hole.Size.Y, 1.f);
+		const float R = FMath::Clamp(Hole.CornerRadius, 0.f, FMath::Min(W, D) * 0.5f);
+		// 部屋の中心を原点にした位置
+		const FVector2D C = Hole.Position - Center2D;
+
+		// 真上から見た角丸の四角（反時計回り）。四隅の丸の中心を回って点を並べる
+		TArray<FVector2D> Poly;
+		const FVector2D Corners[4] = {
+			FVector2D( W * 0.5f - R,  D * 0.5f - R),
+			FVector2D(-W * 0.5f + R,  D * 0.5f - R),
+			FVector2D(-W * 0.5f + R, -D * 0.5f + R),
+			FVector2D( W * 0.5f - R, -D * 0.5f + R),
+		};
+		for (int32 c = 0; c < 4; ++c)
+		{
+			const int32 N = R > 0.5f ? Segs : 0;
+			for (int32 i = 0; i <= N; ++i)
+			{
+				const float A = FMath::DegreesToRadians(90.f * c + (N > 0 ? 90.f * i / N : 45.f));
+				const FVector2D P = Corners[c] + (R > 0.5f ? FVector2D(FMath::Cos(A), FMath::Sin(A)) * R
+					: FVector2D(FMath::Sign(FMath::Cos(A)) * W * 0.5f, FMath::Sign(FMath::Sin(A)) * D * 0.5f) - Corners[c]);
+				// 直線の辺の長さが 0 のとき（半径 = 辺の半分）は、同じ点が続くので飛ばす
+				if (Poly.Num() == 0 || FVector2D::Distance(Poly.Last(), P) > 0.01f)
+				{
+					Poly.Add(P);
+				}
+			}
+		}
+		if (Poly.Num() > 2 && FVector2D::Distance(Poly.Last(), Poly[0]) <= 0.01f)
+		{
+			Poly.Pop();
+		}
+
+		// 床を上下に突き抜ける高さの柱にする（坂なら穴の範囲の高低差も足す）
+		const float Z0 = FMath::Min(GetFloorZ(C.X - W * 0.5f), GetFloorZ(C.X + W * 0.5f));
+		const float Z1 = FMath::Max(GetFloorZ(C.X - W * 0.5f), GetFloorZ(C.X + W * 0.5f));
+		const float Bottom = Z0 - FloorThickness * 3.f - 100.f;
+		const float Height = (Z1 + 100.f) - Bottom;
+
+		HoleToolMesh->Reset();
+		UGeometryScriptLibrary_MeshPrimitiveFunctions::AppendSimpleExtrudePolygon(HoleToolMesh, FGeometryScriptPrimitiveOptions(),
+			FTransform(FVector(C.X, C.Y, Bottom)), Poly, Height, 0, true, EGeometryScriptPrimitiveOriginMode::Base);
+		UGeometryScriptLibrary_MeshBooleanFunctions::ApplyMeshBoolean(Floor, FTransform::Identity, HoleToolMesh, FTransform::Identity,
+			EGeometryScriptBooleanOperation::Subtract, FGeometryScriptMeshBooleanOptions());
 	}
 }
 

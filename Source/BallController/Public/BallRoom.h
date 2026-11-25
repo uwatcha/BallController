@@ -13,6 +13,8 @@ class UInstancedStaticMeshComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
 class ABallDoor;
+class UDynamicMeshComponent;
+class UDynamicMesh;
 
 // 壁の面（アクターのローカル座標で見た向き）
 UENUM(BlueprintType)
@@ -61,6 +63,26 @@ struct FRoomOpening
 	// 2部屋で共有する壁の扉は、穴を持っている方の部屋にだけ登録する
 	UPROPERTY(EditInstanceOnly, Category="Opening")
 	TObjectPtr<ABallDoor> Door;
+};
+
+// 床にあける角丸の四角い穴（鉄球が落ちる穴）
+USTRUCT(BlueprintType)
+struct FRoomFloorHole
+{
+	GENERATED_BODY()
+
+	// 穴の中心の位置 (cm)。アクターの位置（ギズモの位置）から見た X, Y。
+	// 平らな部屋では部屋の中心から、坂の部屋では始点から測る
+	UPROPERTY(EditAnywhere, Category="FloorHole")
+	FVector2D Position = FVector2D(0.f, 0.f);
+
+	// 穴の大きさ (cm)。X = 赤い矢印方向、Y = 緑の矢印方向（真上から見た大きさ）
+	UPROPERTY(EditAnywhere, Category="FloorHole")
+	FVector2D Size = FVector2D(400.f, 400.f);
+
+	// 角の丸の半径 (cm)。0 で角ばった四角。短い辺の半分まで（それ以上は半分として扱う）
+	UPROPERTY(EditAnywhere, Category="FloorHole", meta=(ClampMin="0.0"))
+	float CornerRadius = 100.f;
 };
 
 UCLASS(PrioritizeCategories=("Room"), HideCategories=(Rendering, Replication, Collision, HLOD, Input, LOD, Cooking, Physics, Networking, Navigation, Tags, Activation, "Actor Tick"))
@@ -120,6 +142,14 @@ protected:
 	UPROPERTY(EditAnywhere, Category="Room|Openings")
 	TArray<FRoomOpening> Openings;
 
+	// 床の穴。＋ボタンで増やす。1つでもあると、床を Geometry Script のブーリアン（差分）で作る
+	UPROPERTY(EditAnywhere, Category="Room|FloorHoles")
+	TArray<FRoomFloorHole> FloorHoles;
+
+	// 床の穴の、角の丸1つあたりの分割数。多いほどなめらか
+	UPROPERTY(EditAnywhere, Category="Room|FloorHoles", meta=(ClampMin="1", ClampMax="32"))
+	int32 HoleCornerSegments = 8;
+
 	// ===== 見た目 =====
 
 	UPROPERTY(EditAnywhere, Category="Room|Color")
@@ -146,6 +176,14 @@ protected:
 	// 壁
 	UPROPERTY()
 	TObjectPtr<UInstancedStaticMeshComponent> WallBoxes;
+
+	// 床の穴があるときの床（穴をくり抜いたメッシュ）
+	UPROPERTY()
+	TObjectPtr<UDynamicMeshComponent> FloorMesh;
+
+	// 床の板を1枚追加する（ローカル座標）。床の穴があるときは FloorMesh に、ないときは FloorBoxes に入る。
+	// BuildFloor の中では AddBox ではなくこちらを使う
+	void AddFloorBox(const FVector& Center, const FVector& Size, const FQuat& Rotation = FQuat::Identity);
 
 	// 床を作る。坂などの子クラスはここを差し替える（壁・穴・扉の処理はそのまま使える）
 	virtual void BuildFloor();
@@ -180,6 +218,16 @@ private:
 
 	// 1面ぶんの壁を、穴を避けて箱に分けて追加する
 	void BuildWall(ERoomSide Side);
+
+	// FloorMesh から床の穴をくり抜く
+	void CutFloorHoles();
+
+	// 今の Rebuild で、床を FloorMesh に作っているか
+	bool bFloorToMesh = false;
+
+	// 穴の形を作る作業用のメッシュ
+	UPROPERTY(Transient)
+	TObjectPtr<UDynamicMesh> HoleToolMesh;
 
 	void ApplyColor(UInstancedStaticMeshComponent* ISM, const FLinearColor& Color, TObjectPtr<UMaterialInstanceDynamic>& MID);
 

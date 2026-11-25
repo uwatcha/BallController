@@ -77,7 +77,7 @@ FVector ABallSlopeRoom::GetCenterOffset() const
 	return FVector(RoomSize.X * 0.5f, 0.f, 0.f);
 }
 
-void ABallSlopeRoom::AddSlopedSlab(float X0, float X1, float Y0, float Y1, float TopZOffset, float Thickness)
+void ABallSlopeRoom::AddSlopedSlab(float X0, float X1, float Y0, float Y1, float TopZOffset, float Thickness, bool bAsFloor)
 {
 	if (X1 - X0 <= KINDA_SMALL_NUMBER || Y1 - Y0 <= KINDA_SMALL_NUMBER || Thickness <= 0.f)
 	{
@@ -88,7 +88,16 @@ void ABallSlopeRoom::AddSlopedSlab(float X0, float X1, float Y0, float Y1, float
 	const FVector Up = Rot.RotateVector(FVector::UpVector);
 	const float Length = (X1 - X0) * FMath::Sqrt(1.f + Tan * Tan);
 	const FVector TopMid((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, SlopeZ((X0 + X1) * 0.5f) + TopZOffset);
-	AddBox(FloorBoxes, TopMid - Up * (Thickness * 0.5f), FVector(Length, Y1 - Y0, Thickness), Rot);
+	const FVector Center = TopMid - Up * (Thickness * 0.5f);
+	const FVector Size(Length, Y1 - Y0, Thickness);
+	if (bAsFloor)
+	{
+		AddFloorBox(Center, Size, Rot);
+	}
+	else
+	{
+		AddBox(FloorBoxes, Center, Size, Rot);
+	}
 }
 
 void ABallSlopeRoom::BuildFloor()
@@ -99,7 +108,7 @@ void ABallSlopeRoom::BuildFloor()
 	const float X1 =  RoomSize.X * 0.5f - (bWallPlusX  ? HalfT : 0.f);
 	const float Y0 = -RoomSize.Y * 0.5f + (bWallMinusY ? HalfT : 0.f);
 	const float Y1 =  RoomSize.Y * 0.5f - (bWallPlusY  ? HalfT : 0.f);
-	AddSlopedSlab(X0, X1, Y0, Y1, 0.f, FloorThickness);
+	AddSlopedSlab(X0, X1, Y0, Y1, 0.f, FloorThickness, /*bAsFloor=*/true);
 }
 
 void ABallSlopeRoom::BuildCeiling()
@@ -108,7 +117,7 @@ void ABallSlopeRoom::BuildCeiling()
 	const float HalfT = WallThickness * 0.5f;
 	AddSlopedSlab(-RoomSize.X * 0.5f - HalfT, RoomSize.X * 0.5f + HalfT,
 		-RoomSize.Y * 0.5f - HalfT, RoomSize.Y * 0.5f + HalfT,
-		WallHeight + CeilingThickness, CeilingThickness);
+		WallHeight + CeilingThickness, CeilingThickness, /*bAsFloor=*/false);
 }
 
 void ABallSlopeRoom::AddWallPiece(bool bAlongX, float Normal, float U0, float U1, float ZFrom, float ZTo)

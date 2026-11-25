@@ -1,4 +1,4 @@
-// Author: UE Template（UE が自動生成。User が依存モジュールを追加。ProceduralMeshComponent は Claude が追加）
+// Author: UE Template（UE が自動生成。User が依存モジュールを追加。ProceduralMeshComponent と Geometry 系は Claude が追加）
 // Fill out your copyright notice in the Description page of Project Settings.
 
 using UnrealBuildTool;
@@ -9,7 +9,7 @@ public class BallController : ModuleRules
 	{
 		PCHUsage = PCHUsageMode.UseExplicitOrSharedPCHs;
 	
-		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "ProceduralMeshComponent" });
+		PublicDependencyModuleNames.AddRange(new string[] { "Core", "CoreUObject", "Engine", "InputCore", "EnhancedInput", "UMG", "ProceduralMeshComponent", "GeometryCore", "GeometryFramework", "GeometryScriptingCore" });
 
 		PrivateDependencyModuleNames.AddRange(new string[] {  });
 
