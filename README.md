@@ -24,22 +24,24 @@
 
 | ファイル | 作者 | Claude が書いた部分 |
 |---|---|---|
-| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25）。`ApplyBallSize()`（DataAsset の直径に合わせて拡大縮小し、底の高さを保つ）と `ApplyCameraArmLength()`（SpringArm の長さを反映）、`ApplyTuningData` からの呼び出し（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`MaxSpeedRate` / `SetMaxSpeedRate()` / `GetCurrentMaxSpeed()` と、`RemoveAccelerationAtMaxSpeed()` の比較を `GetCurrentMaxSpeed()` に変更（カーソルの距離で速度の上限を変える。同スレッド 11/25）。`IsGrounded()` と `GROUND_CHECK_MARGIN`、`Move()` で空中なら Force を 0 にする分岐と `IsGrounded` の画面表示（スレッド『空中ではForceを渡さないようにする』11/25。自分で書き直す予定、下の「自分で実装し直したいこと」参照） |
+| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25）。`ApplyBallSize()`（DataAsset の直径に合わせて拡大縮小し、底の高さを保つ）と `ApplyCameraArmLength()`（SpringArm の長さを反映）、`ApplyTuningData` からの呼び出し（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`MaxSpeedRate` / `SetMaxSpeedRate()` / `GetCurrentMaxSpeed()` と、`RemoveAccelerationAtMaxSpeed()` の比較を `GetCurrentMaxSpeed()` に変更（カーソルの距離で速度の上限を変える。同スレッド 11/25）。`IsGrounded()` と `GroundCheckMargin`（11/25 に定数から DataAsset の値に変更。スレッド『部屋Dの坂の部屋を作る』）、`GravityZ` と `ApplyGravity()`（ワールドの重力を切って DataAsset の重力を毎フレーム加える。同スレッド 11/25）、`Move()` と `Tick()` の Force / Velocity のベクトルと大きさの画面表示（同スレッド 11/25）、`Move()` で空中なら Force を 0 にする分岐と `IsGrounded` の画面表示（スレッド『空中ではForceを渡さないようにする』11/25。自分で書き直す予定、下の「自分で実装し直したいこと」参照） |
 | `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25）。`ScaleByForceCurve()` / `GetCursorDistanceRatio()` / `ReticleCircleWidgetName` と、`UpdateCursorVector()` のサークル内の分岐（中心点に近いほど Force の上限を小さくする。スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`SpeedRate` と `SetMaxSpeedRate` の呼び出し（速度の上限もカーブで変える。同スレッド 11/25） |
 | `Private/ABallGameMode.cpp` | User + Claude | `RespawnPlayer()` の書き直し（Pawn がいなくても `RestartPlayer` する形、`AController` の null チェック。11/20、c1d3380） |
 | `Public/ABallGameMode.h` | User | なし |
-| `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226）。`BallDiameter`・`CameraArmLength`・`ForceCurve` とコンストラクタ（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`SpeedCurve`・`bUseForceCurveForSpeed`（同スレッド 11/25）。`BumperBounceSpeed`・`BumperCooldown`（スレッド『い、うの部屋作成』11/25） |
+| `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226）。`BallDiameter`・`CameraArmLength`・`ForceCurve` とコンストラクタ（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`SpeedCurve`・`bUseForceCurveForSpeed`（同スレッド 11/25）。`BumperBounceSpeed`・`BumperCooldown`（スレッド『い、うの部屋作成』11/25）。`GroundCheckMargin`（接地判定の余裕）、`GravityZ`（鉄球だけの重力）と、坂で止まる重力の計算ツール `Tool|GravityCalculator` の項目・ボタン（`Calc*`、`LoadCurrentValuesToCalculator`、`ApplyGravityFromCalculator`、GravityZ の直接入力 `CalcGravityZInput` / `ApplyGravityZInput` と初期値に戻す `ResetGravityZ`、`PostLoad`、`PostEditChangeProperty`。中身は `Private/MyPrimaryDataAsset.cpp`）（スレッド『部屋Dの坂の部屋を作る』11/25） |
+| `Private/MyPrimaryDataAsset.cpp` | Claude | ファイル全体（MyPrimaryDataAsset の重力計算ツールの処理。スレッド『部屋Dの坂の部屋を作る』11/25） |
 | `Public/ReticleWidget.h` / `Private/ReticleWidget.cpp` | User | なし |
 | `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
 | `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23。`GetGroupName()` はスレッド『い、うの部屋作成』11/25） |
 | `Public/BallDoor.h` / `Private/BallDoor.cpp` | Claude | ファイル全体（スイッチと連動して下に沈む扉。色・開く/閉じる速さ・沈む距離・待ち時間を調整可能。スレッド『あの部屋のスイッチを作る』11/24。開ききっても当たり判定を残す修正と、BallRoom から大きさを合わせる `FitSize`、グループ名でスイッチと連動する `SwitchGroupName` はスレッド『い、うの部屋作成』11/25） |
-| `Public/BallRoom.h` / `Private/BallRoom.cpp` | Claude | ファイル全体（床と4枚の壁・天井を数値から組み立てる部屋。部屋の大きさ・壁の高さ/厚さ・床の厚さ・色を調整可能、壁の穴（扉・通路）を面・位置・幅・高さで指定。穴に登録した扉 BallDoor を位置・向き・大きさごと自動で合わせ、扉の下の壁をくり抜く。床の作り方は子クラスで差し替え可能（`BuildFloor`）。スレッド『い、うの部屋作成』11/24〜25） |
+| `Public/BallRoom.h` / `Private/BallRoom.cpp` | Claude | ファイル全体（床と4枚の壁・天井を数値から組み立てる部屋。部屋の大きさ・壁の高さ/厚さ・床の厚さ・色を調整可能、壁の穴（扉・通路）を面・位置・幅・高さで指定。穴に登録した扉 BallDoor を位置・向き・大きさごと自動で合わせ、扉の下の壁をくり抜く。床の作り方は子クラスで差し替え可能（`BuildFloor`）。スレッド『い、うの部屋作成』11/24〜25。子クラス用のフック `BuildCeiling` / `GetFloorZ` / `AddWallPiece` / `GetWallBottomDepth` / `GetCenterOffset` と、壁・扉の高さを床の高さに合わせる処理、`AddBox` の向き指定はスレッド『部屋Dの坂の部屋を作る』11/25） |
+| `Public/BallSlopeRoom.h` / `Private/BallSlopeRoom.cpp` | Claude | ファイル全体（BallRoom を継承した下り坂／上り坂の部屋。アクターの位置が始点で、長さ（RoomSize.X）・傾斜の角度・向きを変えても始点は動かない。床・天井を坂に、壁・穴・扉を坂の高さに合わせる。横の壁は上端が坂と平行な斜めの形（ProceduralMesh、凸形状の当たり判定）。終点の位置を表示。スレッド『部屋Dの坂の部屋を作る』11/25） |
 | `Public/BallBumper.h` / `Private/BallBumper.cpp` | Claude | ファイル全体（当たった鉄球を中心から外向きに弾く円柱のバンパー。直径・高さ・色を調整可能、弾く速さはデータアセットで調整。スレッド『い、うの部屋作成』11/25） |
 | `Public/DebugCameraZoomComponent.h` / `Private/DebugCameraZoomComponent.cpp` | Claude | ファイル全体（デバッグ用カメラズーム。PlayerController に付けるコンポーネントで、キー長押しで SpringArm を縮める/伸ばし、単押しで元の長さに戻す。速さ・最短/最長・長押し判定の秒数を調整可能。Pawn と CursorController のコードは変更なし。スレッド『デバッグ用カメラズームを追加』11/24） |
 | `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |
 | `Scripts/ReorganizeContent.py` | Claude | ファイル全体（Content フォルダの不要アセット削除と、種類ごとのフォルダへの移動を UE エディタで行う Python スクリプト。スレッド『Contentフォルダを整理する』11/23） |
 | `BallController.h` / `BallController.cpp` / `*.Target.cs` | UE Template | なし |
-| `BallController.Build.cs` | UE Template | なし（依存モジュールの `EnhancedInput`・`UMG` は自分で追加） |
+| `BallController.Build.cs` | UE Template | 依存モジュールの `ProceduralMeshComponent` を追加（坂の部屋の斜めの壁用。スレッド『部屋Dの坂の部屋を作る』11/25）。`EnhancedInput`・`UMG` は自分で追加 |
 
 次の変更は機械的な一括置換で、作者は変えていません（Claude が実行）。
 
@@ -194,7 +196,8 @@ Claude（AI）とのチャットログと git 履歴から、分かる範囲で�
 Claude の実装（2026-11-25、スレッド『空中ではForceを渡さないようにする』）を消して、次の手順で書き直す。
 
 - [ ] `SteelBallPawn.h` に接地判定の関数 `bool IsGrounded() const;` を宣言する
-- [ ] 鉄球の中心から真下に「半径 + 少しの余裕（今は 5cm）」だけ線を飛ばす
+- [ ] 鉄球の中心から真下に「半径 + 少しの余裕」だけ線を飛ばす
+  - 余裕は DataAsset の `GroundCheckMargin`（初期値 5cm）を `ApplyTuningData()` でコピーして使う。坂の角度 θ では 半径 × (1 / cos θ - 1) より大きくないと坂の上で外れる
   - `GetWorld()->LineTraceSingleByChannel(Hit, 始点, 終点, ECC_Visibility, Params)`
   - 始点と半径は `SphereMesh->Bounds.Origin` / `Bounds.SphereRadius`（DataAsset で直径を変えても追従する）
   - 自分自身に当たらないように `FCollisionQueryParams` で `this` を無視する

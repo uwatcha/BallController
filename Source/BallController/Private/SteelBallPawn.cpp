@@ -67,6 +67,8 @@ void ASteelBallPawn::ApplyTuningData()
 	LinearDamping = TuningData->LinearDamping;
 	AngularDamping = TuningData->AngularDamping;
 	DampType = TuningData->DampType;
+	GroundCheckMargin = TuningData->GroundCheckMargin; // [Claude]
+	GravityZ = TuningData->GravityZ; // [Claude]
 	ApplySphereMeshMass();
 	ApplyBallSize();        // [Claude]
 	ApplyCameraArmLength(); // [Claude]
@@ -125,6 +127,8 @@ void ASteelBallPawn::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 	
+	ApplyGravity(); // [Claude]
+	
 #if WITH_EDITOR
 	// エディタではプレイ中にDataAssetを編集しても即反映されるよう、毎フレームコピーする
 	ApplyTuningData();
@@ -136,6 +140,10 @@ void ASteelBallPawn::Tick(float DeltaTime)
 		return;
 	}
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), GetSphereMeshSpeed()));
+	// [Claude] 速度のベクトルと大きさ (cm/s)
+	const FVector Velocity = SphereMesh->GetPhysicsLinearVelocity();
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Yellow, FString::Printf(TEXT("Velocity: %s  Size: %.1f"),
+		*Velocity.ToCompactString(), Velocity.Size()));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f (Current %f)"), MaxSpeed, GetCurrentMaxSpeed())); // [Claude] Current を追加
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsForceEnable: %s"), bIsForceEnabled ? TEXT("True") : TEXT("False")));
@@ -201,6 +209,10 @@ void ASteelBallPawn::Move(const FVector2D& InputVector) const
 	SphereMesh->AddForce(ForceVector * ForceVectorScale, NAME_None, UseAcceleration);
 	
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "ForceVector: "+ForceVector.ToString());
+	// [Claude] 実際に AddForce に渡した値 (ForceVector × ForceVectorScale) のベクトルと大きさ
+	const FVector AppliedForce = ForceVector * ForceVectorScale;
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Yellow, FString::Printf(TEXT("Force: %s  Size: %.1f%s"),
+		*AppliedForce.ToCompactString(), AppliedForce.Size(), UseAcceleration ? TEXT(" (Accel)") : TEXT("")));
 }
 
 // [Claude] IsGrounded() は Claude が実装
@@ -211,12 +223,27 @@ bool ASteelBallPawn::IsGrounded() const
 	// Bounds は拡大縮小後の大きさなので、DataAsset で直径を変えても半径が追従する
 	const FVector Start = SphereMesh->Bounds.Origin;
 	const float Radius = SphereMesh->Bounds.SphereRadius;
-	const FVector End = Start - FVector(0.f, 0.f, Radius + GROUND_CHECK_MARGIN);
+	const FVector End = Start - FVector(0.f, 0.f, Radius + GroundCheckMargin);
 	
 	// 自分自身の当たり判定には当たらないようにする
 	FCollisionQueryParams Params(SCENE_QUERY_STAT(SteelBallGroundCheck), false, this);
 	FHitResult Hit;
 	return GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+}
+
+// [Claude] ApplyGravity() は Claude が実装
+void ASteelBallPawn::ApplyGravity() const
+{
+	if (SphereMesh == nullptr || !SphereMesh->IsSimulatingPhysics()) return;
+	
+	// ワールドの重力は使わず、DataAsset の重力だけをかける
+	if (SphereMesh->IsGravityEnabled())
+	{
+		SphereMesh->SetEnableGravity(false);
+	}
+	// 加速度として加えるので、重さに関係なく GravityZ で落ちる (普通の重力と同じ)
+	SphereMesh->AddForce(FVector(0.f, 0.f, GravityZ), NAME_None, /*bAccelChange=*/true);
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("GravityZ: %f"), GravityZ));
 }
 
 void ASteelBallPawn::Die()

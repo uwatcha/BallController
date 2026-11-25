@@ -64,15 +64,17 @@ void ABallRoom::Rebuild()
 	FloorBoxes->ClearInstances();
 	WallBoxes->ClearInstances();
 
+	// 坂の部屋などは、部屋の中心をアクターの位置からずらす
+	FloorBoxes->SetRelativeLocation(GetCenterOffset());
+	WallBoxes->SetRelativeLocation(GetCenterOffset());
+
 	if (bFloor)
 	{
 		BuildFloor();
 	}
 	if (bCeiling)
 	{
-		// 壁の外側まで覆う
-		AddBox(FloorBoxes, FVector(0.f, 0.f, WallHeight + CeilingThickness * 0.5f),
-			FVector(RoomSize.X + WallThickness, RoomSize.Y + WallThickness, CeilingThickness));
+		BuildCeiling();
 	}
 
 	if (bWallPlusX)  { BuildWall(ERoomSide::PlusX); }
@@ -104,6 +106,13 @@ void ABallRoom::BuildFloor()
 	}
 }
 
+void ABallRoom::BuildCeiling()
+{
+	// 壁の外側まで覆う
+	AddBox(FloorBoxes, FVector(0.f, 0.f, WallHeight + CeilingThickness * 0.5f),
+		FVector(RoomSize.X + WallThickness, RoomSize.Y + WallThickness, CeilingThickness));
+}
+
 void ABallRoom::BuildWall(ERoomSide Side)
 {
 	if (WallHeight <= 0.f)
@@ -132,7 +141,8 @@ void ABallRoom::BuildWall(ERoomSide Side)
 	}
 
 	// 床がある部屋では、壁を床の下面まで伸ばして床の縁を覆う
-	const float WallBottom = bFloor ? -FloorThickness : 0.f;
+	// （高さはすべて、その場所の床の上面からの高さ。坂の部屋では区間ごとに床の高さを足す）
+	const float WallBottom = bFloor ? -GetWallBottomDepth() : 0.f;
 
 	// 壁の中心線の位置（壁と直交する方向）
 	float Normal = 0.f;
@@ -172,6 +182,7 @@ void ABallRoom::BuildWall(ERoomSide Side)
 			Cuts.Add(H.U1);
 		}
 	}
+
 	Cuts.Sort();
 
 	// 穴の端で壁を縦に区切り、区間ごとに穴のない高さだけ箱を置く
@@ -200,20 +211,9 @@ void ABallRoom::BuildWall(ERoomSide Side)
 		float Z = WallBottom;
 		auto EmitSolid = [&](float ZFrom, float ZTo)
 		{
-			if (ZTo - ZFrom <= KINDA_SMALL_NUMBER)
+			if (ZTo - ZFrom > KINDA_SMALL_NUMBER)
 			{
-				return;
-			}
-			const float ZMid = (ZFrom + ZTo) * 0.5f;
-			const float Height = ZTo - ZFrom;
-			const float Width = U1 - U0;
-			if (bAlongX)
-			{
-				AddBox(WallBoxes, FVector(UMid, Normal, ZMid), FVector(Width, WallThickness, Height));
-			}
-			else
-			{
-				AddBox(WallBoxes, FVector(Normal, UMid, ZMid), FVector(WallThickness, Width, Height));
+				AddWallPiece(bAlongX, Normal, U0, U1, ZFrom, ZTo);
 			}
 		};
 		for (const TPair<float, float>& ZH : ZHoles)
@@ -222,6 +222,23 @@ void ABallRoom::BuildWall(ERoomSide Side)
 			Z = FMath::Max(Z, ZH.Value);
 		}
 		EmitSolid(Z, WallHeight);
+	}
+}
+
+void ABallRoom::AddWallPiece(bool bAlongX, float Normal, float U0, float U1, float ZFrom, float ZTo)
+{
+	// その場所の床の上面の高さを足す（平らな部屋では 0）
+	const float UMid = (U0 + U1) * 0.5f;
+	const float ZMid = GetFloorZ(bAlongX ? UMid : Normal) + (ZFrom + ZTo) * 0.5f;
+	const float Height = ZTo - ZFrom;
+	const float Width = U1 - U0;
+	if (bAlongX)
+	{
+		AddBox(WallBoxes, FVector(UMid, Normal, ZMid), FVector(Width, WallThickness, Height));
+	}
+	else
+	{
+		AddBox(WallBoxes, FVector(Normal, UMid, ZMid), FVector(WallThickness, Width, Height));
 	}
 }
 
@@ -260,6 +277,10 @@ void ABallRoom::FitDoors()
 		case ERoomSide::MinusY: Local = FVector(O.Offset, -RoomSize.Y * 0.5f, O.Bottom); Yaw = 90.f; break;
 		}
 
+		// 穴の下端は、その場所の床の上面から測る。部屋の中心のずれも足す
+		Local.Z += GetFloorZ(Local.X);
+		Local += GetCenterOffset();
+
 		const FVector WorldLoc = RoomTM.TransformPosition(Local);
 		const FQuat WorldRot = RoomTM.GetRotation() * FRotator(0.f, Yaw, 0.f).Quaternion();
 		Door->SetActorTransform(FTransform(WorldRot, WorldLoc, FVector::OneVector));
@@ -270,9 +291,9 @@ void ABallRoom::FitDoors()
 	}
 }
 
-void ABallRoom::AddBox(UInstancedStaticMeshComponent* ISM, const FVector& Center, const FVector& Size)
+void ABallRoom::AddBox(UInstancedStaticMeshComponent* ISM, const FVector& Center, const FVector& Size, const FQuat& Rotation)
 {
-	const FTransform T(FQuat::Identity, Center, Size / CubeSize);
+	const FTransform T(Rotation, Center, Size / CubeSize);
 	ISM->AddInstance(T, /*bWorldSpace=*/false);
 }
 

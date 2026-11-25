@@ -75,6 +75,12 @@ private:
 	// 中心点にある時に使うDampingの種類
 	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
 	ESteelBallDampType DampType = ESteelBallDampType::Angular;
+	// [Claude] 接地判定で半径より先に余分に見る距離(cm)。DataAsset の GroundCheckMargin
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	float GroundCheckMargin = 5.f;
+	// [Claude] 鉄球にかかる重力加速度 (cm/s²)。DataAsset の GravityZ
+	UPROPERTY(VisibleAnywhere, Category="Parameter|FromTuningData")
+	float GravityZ = -980.f;
 	
 	// TuningDataの値を上のフィールドにコピーする
 	void ApplyTuningData();
@@ -90,10 +96,12 @@ private:
 	// [Claude] 最後に反映した CameraArmLength。値が変わった時だけ反映し、デバッグズームを毎フレーム上書きしないため
 	float LastAppliedCameraArmLength = -1.f;
 	
-	// [Claude] 接地判定。鉄球の中心から真下に「半径 + GROUND_CHECK_MARGIN」だけ線を飛ばし、何かに当たれば接地中とみなす
+	// [Claude] 接地判定。鉄球の中心から真下に「半径 + GroundCheckMargin」だけ線を飛ばし、何かに当たれば接地中とみなす
 	bool IsGrounded() const;
-	// [Claude] 接地判定で半径より先に余分に見る距離(cm)。転がる時の小さな跳ねで空中扱いにならないための余裕
-	const float GROUND_CHECK_MARGIN = 5.f;
+	
+	// [Claude] ワールドの重力を切り、DataAsset の GravityZ を毎フレーム加速度として加える (鉄球だけの重力)
+	void ApplyGravity() const;
+
 	
 protected:
 	virtual void PossessedBy(AController*) override;

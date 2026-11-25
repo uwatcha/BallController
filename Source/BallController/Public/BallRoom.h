@@ -150,8 +150,27 @@ protected:
 	// 床を作る。坂などの子クラスはここを差し替える（壁・穴・扉の処理はそのまま使える）
 	virtual void BuildFloor();
 
-	// 中心とサイズ (cm) を指定して箱を1つ追加する（ローカル座標）
-	static void AddBox(UInstancedStaticMeshComponent* ISM, const FVector& Center, const FVector& Size);
+	// 天井を作る。坂の部屋などは差し替える
+	virtual void BuildCeiling();
+
+	// ===== 子クラス（坂の部屋 BallSlopeRoom など）用のフック。平らな部屋では全部 0 =====
+
+	// 部屋の中心から X 方向に LocalX の位置での、床の上面の高さ (cm)。
+	// 壁・穴・扉の高さは、この高さを基準にする
+	virtual float GetFloorZ(float LocalX) const { return 0.f; }
+
+	// 壁の1ピース（穴で区切られた区間 U0〜U1、高さ ZFrom〜ZTo）を追加する。高さはその場所の床の上面から。
+	// bAlongX = X 方向に伸びる壁（±Y の面）、Normal = 壁の中心線の位置。坂の部屋は斜めの形に差し替える
+	virtual void AddWallPiece(bool bAlongX, float Normal, float U0, float U1, float ZFrom, float ZTo);
+
+	// 床の上面から、壁の下端までの深さ (cm)。床の縁を壁で覆うため
+	virtual float GetWallBottomDepth() const { return FloorThickness; }
+
+	// アクターの位置から見た、部屋の中心の位置 (cm)。坂の部屋は始点をアクターの位置にするためにずらす
+	virtual FVector GetCenterOffset() const { return FVector::ZeroVector; }
+
+	// 中心とサイズ (cm) と向きを指定して箱を1つ追加する（ローカル座標）
+	static void AddBox(UInstancedStaticMeshComponent* ISM, const FVector& Center, const FVector& Size, const FQuat& Rotation = FQuat::Identity);
 
 private:
 	void Rebuild();
