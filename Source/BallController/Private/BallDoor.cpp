@@ -52,8 +52,8 @@ void ABallDoor::BeginPlay()
 	ApplyColor();
 
 	ClosedLocation = DoorMesh->GetComponentLocation();
-	// 0 なら扉の高さぶん沈める（少し余分に沈めて、床から出っ張らないようにする）
-	ActualOpenDistance = OpenDistance > 0.f ? OpenDistance : DoorMesh->Bounds.BoxExtent.Z * 2.f + 2.f;
+	// 0 なら扉の高さぶんちょうど沈める（沈みきると扉の上面が床と同じ高さになり、そのまま床として乗れる）
+	ActualOpenDistance = OpenDistance > 0.f ? OpenDistance : DoorMesh->Bounds.BoxExtent.Z * 2.f;
 
 	for (ABallSwitch* Switch : Switches)
 	{
@@ -152,15 +152,6 @@ void ABallDoor::Tick(float DeltaSeconds)
 	}
 
 	CurrentOffset = FMath::FInterpConstantTo(CurrentOffset, Target, DeltaSeconds, Speed);
-	// 物理の当たり判定も同じ位置へすぐ移す
+	// 当たり判定はメッシュと一緒に動く（切らない）。沈みきった扉の上面は床の代わりになる
 	DoorMesh->SetWorldLocation(ClosedLocation - FVector::UpVector * CurrentOffset, false, nullptr, ETeleportType::TeleportPhysics);
-
-	// 開ききったら当たり判定を切り、確実に通れるようにする。閉じ始めたら戻す
-	const bool bFullyOpen = CurrentOffset >= ActualOpenDistance - 1.f;
-	const ECollisionEnabled::Type WantCollision = bFullyOpen ? ECollisionEnabled::NoCollision : ECollisionEnabled::QueryAndPhysics;
-	if (DoorMesh->GetCollisionEnabled() != WantCollision)
-	{
-		DoorMesh->SetCollisionEnabled(WantCollision);
-		SB_LOG(LogTemp, Log, TEXT("%s collision=%s"), *GetName(), bFullyOpen ? TEXT("off") : TEXT("on"));
-	}
 }
