@@ -93,6 +93,16 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Camera", meta=(UIMin=0, ClampMin=0, UIMax=10000, ClampMax=10000, Units="cm"))
 	float CameraArmLength = 0.f;
 	
+	// ===== Gimmick|Bumper : バンパー [Claude] =====
+	
+	// バンパーに当たった鉄球を、バンパーの中心から外向きに弾き飛ばす速さ (cm/s)。鉄球の重さに関係なくこの速さになる
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Gimmick|Bumper", meta=(UIMin=0, ClampMin=0, UIMax=5000, ClampMax=5000, ForceUnits="cm/s"))
+	float BumperBounceSpeed = 1500.f;
+	
+	// 一度弾いてから、次に弾けるようになるまでの時間 (秒)。連続で何度も弾かれるのを防ぐ
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Gimmick|Bumper", meta=(UIMin=0, ClampMin=0, UIMax=2, ClampMax=2, Units="s"))
+	float BumperCooldown = 0.1f;
+	
 	// ===== SteelBall|Physics : 鉄球の物理パラメータ =====
 	
 	// SteelBallの質量(kg)
