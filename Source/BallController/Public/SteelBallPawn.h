@@ -39,6 +39,9 @@ private:
 	// カーソルが中心点にある時にForceを0にするためのフラグ
 	bool bIsForceEnabled;
 	
+	// [Claude] 速度の上限を MaxSpeed の何倍にするか。SetMaxSpeedRate() で設定する
+	float MaxSpeedRate = 1.f;
+	
 	// 調整値をまとめたDataAsset (ForceVectorScale, UseAcceleration, Mass など)
 	// パラメータは全てDataAssetで調整し、ApplyTuningData() で下のフィールドにコピーされる
 	UPROPERTY(EditAnywhere, Category="Parameter")
@@ -79,6 +82,19 @@ private:
 	// Meshにエディタでのパラメータの変更を適用する
 	void ApplySphereMeshMass() const;
 	
+	// [Claude] DataAssetの BallDiameter に合わせて鉄球を拡大縮小する。底の高さは保つ
+	void ApplyBallSize();
+	
+	// [Claude] DataAssetの CameraArmLength を SpringArm に反映する
+	void ApplyCameraArmLength();
+	// [Claude] 最後に反映した CameraArmLength。値が変わった時だけ反映し、デバッグズームを毎フレーム上書きしないため
+	float LastAppliedCameraArmLength = -1.f;
+	
+	// [Claude] 接地判定。鉄球の中心から真下に「半径 + GROUND_CHECK_MARGIN」だけ線を飛ばし、何かに当たれば接地中とみなす
+	bool IsGrounded() const;
+	// [Claude] 接地判定で半径より先に余分に見る距離(cm)。転がる時の小さな跳ねで空中扱いにならないための余裕
+	const float GROUND_CHECK_MARGIN = 5.f;
+	
 protected:
 	virtual void PossessedBy(AController*) override;
 	
@@ -99,6 +115,11 @@ public:
 	/// bIsForceEnabled: {true: Forceをそのまま渡す、false: Forceを0にする} この分岐のためのフラグ
 	/// カーソルが中心点から出た時 or 入った時に呼び出されるように、デリゲートに登録する想定
 	void SetIsForceEnabled(bool bIsEnabled) { bIsForceEnabled = bIsEnabled; }
+	
+	/// [Claude] 速度の上限を MaxSpeed の何倍にするか (0〜1)。CursorController がカーソルの距離から毎フレーム設定する
+	void SetMaxSpeedRate(float Rate) { MaxSpeedRate = FMath::Max(0.f, Rate); }
+	/// [Claude] 今の速度の上限 (MaxSpeed * MaxSpeedRate)
+	float GetCurrentMaxSpeed() const { return MaxSpeed * MaxSpeedRate; }
 	
 	void Die();
 };

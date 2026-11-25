@@ -8,6 +8,7 @@
 #include "ReticleWidget.h"
 #include "MyPrimaryDataAsset.h"
 #include "BallLog.h"
+#include "Blueprint/WidgetLayoutLibrary.h" // [Claude] GetMousePositionOnPlatform
 #include "string"
 
 
@@ -189,6 +190,7 @@ void ACursorController::Tick(float DeltaTime)
 		SB_LOG(LogTemp, Error, TEXT("SteelBallを取得できていません"));
 		return;
 	}
+	SteelBall->SetMaxSpeedRate(SpeedRate); // [Claude] カーソルの距離で速度の上限を変える
 	SteelBall->Move(CursorVector);
 }
 
@@ -228,6 +230,7 @@ void ACursorController::UpdateCursorVector()
 	
 	// カーソルがサークル外にある時、ForceのベクトルのスカラーをMaxに補正する
 	const TCHAR* ClampState = nullptr;
+	SpeedRate = 1.f; // [Claude] 外周円の外では MaxSpeed のまま
 	if (!ReticleWidgetPtr->IsCursorInCircle())
 	{
 		ResultVector = ClampScalarToMax(relativeVector);
@@ -235,6 +238,8 @@ void ACursorController::UpdateCursorVector()
 	}
 	else
 	{
+		// [Claude] サークル内では、中心点に近いほどForceの上限を小さくする
+		ResultVector = ScaleByForceCurve(relativeVector, SpeedRate);
 		ClampState = TEXT("disable");
 	}
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("ClampScalarToMax: %s"), ClampState));
@@ -250,6 +255,67 @@ FVector2D ACursorController::ClampScalarToMax(FVector2D Vector) const
 	const FVector2D ClampedVector = Vector.GetSafeNormal() * MaxForce;
 	return ClampedVector;
 }
+
+// [Claude] ここから GetCursorDistanceRatio() まで Claude が実装
+FVector2D ACursorController::ScaleByForceCurve(FVector2D Vector, float& OutSpeedRate) const
+{
+	OutSpeedRate = 1.f;
+	// 外周円が見つからない時や、カーブが空の時は、今までどおりのベクトルを返す (理由を画面に出す)
+	if (TuningData == nullptr)
+	{
+		GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Red, TEXT("ForceCurve未使用: BP_CursorController の TuningData が未設定"));
+		return Vector;
+	}
+	const FRichCurve* Curve = TuningData->ForceCurve.GetRichCurveConst();
+	if (Curve == nullptr || Curve->GetNumKeys() == 0)
+	{
+		GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Red, TEXT("ForceCurve未使用: DataAsset の Force Curve にキーがない"));
+		return Vector;
+	}
+	const float Ratio = GetCursorDistanceRatio();
+	if (Ratio < 0.f)
+	{
+		GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Red, FString::Printf(TEXT("ForceCurve未使用: WBP_Reticle に「%s」という名前のウィジェットがない、または大きさが0"), *ReticleCircleWidgetName.ToString()));
+		return Vector;
+	}
+	
+	// カーブから MaxForce にかける倍率を読む (横軸 0〜1 の外に出ないようにする)
+	const float ClampedRatio = FMath::Clamp(Ratio, 0.f, 1.f);
+	const float Rate = FMath::Max(0.f, Curve->Eval(ClampedRatio));
+	
+	// 速度の上限の倍率。チェックボックスが ON なら Force と同じカーブを使う
+	const FRichCurve* SpeedCurve = TuningData->bUseForceCurveForSpeed ? Curve : TuningData->SpeedCurve.GetRichCurveConst();
+	if (SpeedCurve != nullptr && SpeedCurve->GetNumKeys() > 0)
+	{
+		OutSpeedRate = FMath::Max(0.f, SpeedCurve->Eval(ClampedRatio));
+	}
+	else
+	{
+		GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Red, TEXT("SpeedCurve未使用: DataAsset の Speed Curve にキーがない"));
+	}
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("CursorDistanceRatio: %.2f, ForceRate: %.2f, SpeedRate: %.2f"), Ratio, Rate, OutSpeedRate));
+	
+	// 向きはカーソルの方向のまま、長さを MaxForce * 倍率 にする
+	return Vector.GetSafeNormal() * MaxForce * Rate;
+}
+
+float ACursorController::GetCursorDistanceRatio() const
+{
+	if (ReticleWidgetPtr == nullptr) return -1.f;
+	const UWidget* Circle = ReticleWidgetPtr->GetWidgetFromName(ReticleCircleWidgetName);
+	if (Circle == nullptr)
+	{
+		return -1.f;
+	}
+	// WBP_Reticle の IsMouseIn と同じ計算: 外周円のローカル座標でのカーソルと中心の距離 / 半径
+	const FGeometry& Geometry = Circle->GetCachedGeometry();
+	const FVector2D LocalSize = Geometry.GetLocalSize();
+	const float Radius = LocalSize.X * 0.5f;
+	if (Radius <= UE_KINDA_SMALL_NUMBER) return -1.f;
+	const FVector2D LocalCursor = Geometry.AbsoluteToLocal(UWidgetLayoutLibrary::GetMousePositionOnPlatform());
+	return FVector2D::Distance(LocalCursor, LocalSize * 0.5f) / Radius;
+}
+// [Claude] ここまで
 
 void ACursorController::OnDebugRespawn()
 {

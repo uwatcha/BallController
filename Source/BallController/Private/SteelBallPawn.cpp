@@ -6,6 +6,8 @@
 #include "CursorController.h"
 #include "MyPrimaryDataAsset.h"
 #include "Components/SphereComponent.h"
+#include "Components/StaticMeshComponent.h" // [Claude] ApplyBallSize
+#include "GameFramework/SpringArmComponent.h" // [Claude] ApplyCameraArmLength
 
 #include "Engine/LocalPlayer.h"
 #include "BallLog.h"
@@ -66,7 +68,47 @@ void ASteelBallPawn::ApplyTuningData()
 	AngularDamping = TuningData->AngularDamping;
 	DampType = TuningData->DampType;
 	ApplySphereMeshMass();
+	ApplyBallSize();        // [Claude]
+	ApplyCameraArmLength(); // [Claude]
 }
+
+// [Claude] ここから ApplyCameraArmLength() まで Claude が実装
+void ASteelBallPawn::ApplyBallSize()
+{
+	// ルートの StaticMesh を拡大縮小すると、Mesh の当たり判定 (Simple Collision) も一緒に拡大縮小される
+	const UStaticMeshComponent* Mesh = Cast<UStaticMeshComponent>(GetRootComponent());
+	if (Mesh == nullptr || Mesh->GetStaticMesh() == nullptr) return;
+	
+	// 拡大率 1 の時の直径。/Engine/BasicShapes/Sphere なら 100cm
+	const float BaseDiameter = Mesh->GetStaticMesh()->GetBounds().BoxExtent.Z * 2.f;
+	if (BaseDiameter <= UE_KINDA_SMALL_NUMBER) return;
+	
+	const float TargetScale = TuningData->BallDiameter / BaseDiameter;
+	const float CurrentScale = GetActorScale3D().Z;
+	// 毎フレーム呼ばれるので、大きさが変わった時だけ処理する
+	if (FMath::IsNearlyEqual(TargetScale, CurrentScale, 1.e-4f)) return;
+	
+	// 中心を基準に拡大すると底が床にめり込むので、半径が増えた分だけ上に (減った分だけ下に) ずらして底の高さを保つ
+	const float DeltaRadius = (TargetScale - CurrentScale) * BaseDiameter * 0.5f;
+	AddActorWorldOffset(FVector(0.f, 0.f, DeltaRadius), false, nullptr, ETeleportType::TeleportPhysics);
+	SetActorScale3D(FVector(TargetScale));
+	// 質量は SetMassOverrideInKg で固定しているので、大きさを変えても Mass のまま
+}
+
+void ASteelBallPawn::ApplyCameraArmLength()
+{
+	// 0 の時は BP の SpringArm の値をそのまま使う
+	if (TuningData->CameraArmLength <= 0.f) return;
+	// 値が変わった時だけ反映する (デバッグズーム中の長さを毎フレーム戻さないため)
+	if (FMath::IsNearlyEqual(LastAppliedCameraArmLength, TuningData->CameraArmLength)) return;
+	
+	// SpringArm は BP_SteelBallPawn にだけあるので、型で探す
+	USpringArmComponent* SpringArm = FindComponentByClass<USpringArmComponent>();
+	if (SpringArm == nullptr) return;
+	SpringArm->TargetArmLength = TuningData->CameraArmLength;
+	LastAppliedCameraArmLength = TuningData->CameraArmLength;
+}
+// [Claude] ここまで
 
 void ASteelBallPawn::ApplySphereMeshMass() const
 {
@@ -94,7 +136,7 @@ void ASteelBallPawn::Tick(float DeltaTime)
 		return;
 	}
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("Speed: %f"), GetSphereMeshSpeed()));
-	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f"), MaxSpeed));
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("MaxSpeed: %f (Current %f)"), MaxSpeed, GetCurrentMaxSpeed())); // [Claude] Current を追加
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsForceEnable: %s"), bIsForceEnabled ? TEXT("True") : TEXT("False")));
 	// GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("AngularDamping: %f"), AngularDamping));
@@ -139,7 +181,10 @@ void ASteelBallPawn::Move(const FVector2D& InputVector) const
 	const FVector RightDirection = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 	
 	FVector ForceVector;
-	if (bIsForceEnabled)
+	// [Claude] 空中 (IsGrounded() が false) の時は Force を渡さない
+	const bool bIsGrounded = IsGrounded();
+	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, FString::Printf(TEXT("IsGrounded: %s"), bIsGrounded ? TEXT("True") : TEXT("False")));
+	if (bIsForceEnabled && bIsGrounded)
 	{
 		// ワールドでは前方がX、右方向がYなので、入力ベクトルを調整してからForceを加えるVectorを作成する
 		const FVector2D WorldInputVector = FVector2D(-InputVector.Y, InputVector.X);
@@ -158,6 +203,22 @@ void ASteelBallPawn::Move(const FVector2D& InputVector) const
 	GEngine->AddOnScreenDebugMessage(__LINE__, 0.f, FColor::Blue, "ForceVector: "+ForceVector.ToString());
 }
 
+// [Claude] IsGrounded() は Claude が実装
+bool ASteelBallPawn::IsGrounded() const
+{
+	if (SphereMesh == nullptr) return false;
+	
+	// Bounds は拡大縮小後の大きさなので、DataAsset で直径を変えても半径が追従する
+	const FVector Start = SphereMesh->Bounds.Origin;
+	const float Radius = SphereMesh->Bounds.SphereRadius;
+	const FVector End = Start - FVector(0.f, 0.f, Radius + GROUND_CHECK_MARGIN);
+	
+	// 自分自身の当たり判定には当たらないようにする
+	FCollisionQueryParams Params(SCENE_QUERY_STAT(SteelBallGroundCheck), false, this);
+	FHitResult Hit;
+	return GetWorld()->LineTraceSingleByChannel(Hit, Start, End, ECC_Visibility, Params);
+}
+
 void ASteelBallPawn::Die()
 {
 	// 呼ばれたことを画面に3秒だけ表示する
@@ -171,7 +232,7 @@ FVector2D ASteelBallPawn::RemoveAccelerationAtMaxSpeed(FVector2D InputVector) co
 {
 	const TCHAR* CutState;
 	FVector2D ResultVector;
-	if (GetSphereMeshSpeed() >= MaxSpeed)
+	if (GetSphereMeshSpeed() >= GetCurrentMaxSpeed()) // [Claude] MaxSpeed → カーソルの距離で変わる上限
 	{
 		// 現在の速度ベクトル
 		const FVector CurrentVelocity = SphereMesh->GetPhysicsLinearVelocity();

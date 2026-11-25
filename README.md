@@ -18,17 +18,17 @@
 - 既存のファイルを Claude が書き換えたときは、表の「Claude が書いた部分」に追記する
 - 誤字の修正や、名前の一括置換のような機械的な変更は、作者を変えない
 
-### ファイルごとの記録（2026-11-24 時点）
+### ファイルごとの記録（2026-11-25 時点）
 
 判断の材料は、git の履歴と、Claude のプロジェクトのスレッドでのやり取りです。
 
 | ファイル | 作者 | Claude が書いた部分 |
 |---|---|---|
-| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25） |
-| `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25） |
+| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25）。`ApplyBallSize()`（DataAsset の直径に合わせて拡大縮小し、底の高さを保つ）と `ApplyCameraArmLength()`（SpringArm の長さを反映）、`ApplyTuningData` からの呼び出し（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`MaxSpeedRate` / `SetMaxSpeedRate()` / `GetCurrentMaxSpeed()` と、`RemoveAccelerationAtMaxSpeed()` の比較を `GetCurrentMaxSpeed()` に変更（カーソルの距離で速度の上限を変える。同スレッド 11/25）。`IsGrounded()` と `GROUND_CHECK_MARGIN`、`Move()` で空中なら Force を 0 にする分岐と `IsGrounded` の画面表示（スレッド『空中ではForceを渡さないようにする』11/25。自分で書き直す予定、下の「自分で実装し直したいこと」参照） |
+| `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25）。`ScaleByForceCurve()` / `GetCursorDistanceRatio()` / `ReticleCircleWidgetName` と、`UpdateCursorVector()` のサークル内の分岐（中心点に近いほど Force の上限を小さくする。スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`SpeedRate` と `SetMaxSpeedRate` の呼び出し（速度の上限もカーブで変える。同スレッド 11/25） |
 | `Private/ABallGameMode.cpp` | User + Claude | `RespawnPlayer()` の書き直し（Pawn がいなくても `RestartPlayer` する形、`AController` の null チェック。11/20、c1d3380） |
 | `Public/ABallGameMode.h` | User | なし |
-| `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226） |
+| `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226）。`BallDiameter`・`CameraArmLength`・`ForceCurve` とコンストラクタ（スレッド『鉄球の大きさとForce上限をDataAssetで調整』11/25）。`SpeedCurve`・`bUseForceCurveForSpeed`（同スレッド 11/25） |
 | `Public/ReticleWidget.h` / `Private/ReticleWidget.cpp` | User | なし |
 | `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
 | `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23。`GetGroupName()` はスレッド『い、うの部屋作成』11/25） |
@@ -183,3 +183,22 @@ Claude（AI）とのチャットログと git 履歴から、分かる範囲で�
   - 判断の記録を README に残す
   - AI の使い方を隠さずに書く
 - 【自分で決定】その提案を受けて、この記録（README.md）を AI にまとめさせた（参照: チャット 2026-11-08）
+
+## 自分で実装し直したいこと（やることリスト）
+
+時間の都合で Claude に書かせたが、Pawn の基本動作なので、時間があれば自分で書き直したいもの。
+
+### 空中では Force を渡さない（接地判定）
+
+Claude の実装（2026-11-25、スレッド『空中ではForceを渡さないようにする』）を消して、次の手順で書き直す。
+
+- [ ] `SteelBallPawn.h` に接地判定の関数 `bool IsGrounded() const;` を宣言する
+- [ ] 鉄球の中心から真下に「半径 + 少しの余裕（今は 5cm）」だけ線を飛ばす
+  - `GetWorld()->LineTraceSingleByChannel(Hit, 始点, 終点, ECC_Visibility, Params)`
+  - 始点と半径は `SphereMesh->Bounds.Origin` / `Bounds.SphereRadius`（DataAsset で直径を変えても追従する）
+  - 自分自身に当たらないように `FCollisionQueryParams` で `this` を無視する
+- [ ] `Move()` で、接地していない時は `ForceVector` を 0 にする
+  - `bIsForceEnabled`（カーソルが中心点にあるか）とは別に判定する。このフラグは CursorController が上書きするため
+- [ ] 確認用に `DrawDebugLine`（`DrawDebugHelpers.h`）で線を出し、当たったら緑・外れたら赤にしてみる
+- [ ] 坂や段差の角で判定が抜けるなら、`SweepSingleByChannel` で小さい球を飛ばす形に変える
+- [ ] 書き直したら、README の表から Claude の担当分を消す

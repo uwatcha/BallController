@@ -83,6 +83,20 @@ private:
 	// ForceのベクトルのスカラーがMaxを超えないように補正する
 	FVector2D ClampScalarToMax(FVector2D Vector) const;
 	
+	// [Claude] 外周円の内側で、中心点に近いほどForceの上限を小さくする (TuningData の ForceCurve を使う)
+	// [Claude] OutSpeedRate には速度の上限の倍率 (SpeedCurve か ForceCurve の値) を返す
+	FVector2D ScaleByForceCurve(FVector2D Vector, float& OutSpeedRate) const;
+	
+	// [Claude] 鉄球に渡す速度の上限の倍率。外周円の外では 1
+	float SpeedRate = 1.f;
+	
+	// [Claude] カーソルが外周円のどこにあるか (0 = 中心, 1 = 外周円)。取得できなければ負の値
+	float GetCursorDistanceRatio() const;
+	
+	// [Claude] WBP_Reticle の中で外周円になっているウィジェットの名前 (階層パネルの名前)
+	UPROPERTY(EditAnywhere, Category="UI")
+	FName ReticleCircleWidgetName = TEXT("Circle");
+	
 	void OnDebugRespawn();
 
 protected:
