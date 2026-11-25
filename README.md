@@ -24,8 +24,8 @@
 
 | ファイル | 作者 | Claude が書いた部分 |
 |---|---|---|
-| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20） |
-| `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380） |
+| `Public/SteelBallPawn.h` / `Private/SteelBallPawn.cpp` | User + Claude | `Move` のデバッグ出力を画面表示に書き換え（スレッド『鉄球Moveのデバッグ出力を画面表示に』11/07、4017d80）。Linear / Angular Damping の切り替え（`DampType` と `ApplyTuningData`・`SwitchDamp` の該当部分、11/18、92ac226）。`Die()` 冒頭のデバッグ表示（11/20）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25） |
+| `Public/CursorController.h` / `Private/CursorController.cpp` | User + Claude | `BindSteelBallDelegates()` / `UnbindSteelBallDelegates()`（スレッド『マウス中心点時に減衰させる機能』A案、11/18）。`UpdateCursorVector()` の `ClampScalarToMax` 表示（11/15）。`IA_DebugKill` のハンドル保存と解除、`IA_DebugRespawn` を一度だけバインドするフラグ、`OnDebugRespawn()` 冒頭のデバッグ表示（スレッド『Controllerで複数IMCを切り替えてIAをバインド』11/20、c1d3380）。`UCLASS` の `PrioritizeCategories`（BP で設定する項目を詳細パネルの上に出す。スレッド『い、うの部屋作成』11/25） |
 | `Private/ABallGameMode.cpp` | User + Claude | `RespawnPlayer()` の書き直し（Pawn がいなくても `RestartPlayer` する形、`AController` の null チェック。11/20、c1d3380） |
 | `Public/ABallGameMode.h` | User | なし |
 | `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226） |

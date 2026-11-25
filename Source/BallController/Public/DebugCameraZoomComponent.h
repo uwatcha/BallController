@@ -12,7 +12,7 @@ class UInputAction;
 class USpringArmComponent;
 struct FInputActionValue;
 
-UCLASS(ClassGroup=(Debug), meta=(BlueprintSpawnableComponent))
+UCLASS(ClassGroup=(Debug), meta=(BlueprintSpawnableComponent), PrioritizeCategories=("DebugZoom"))
 class BALLCONTROLLER_API UDebugCameraZoomComponent : public UActorComponent
 {
 	GENERATED_BODY()

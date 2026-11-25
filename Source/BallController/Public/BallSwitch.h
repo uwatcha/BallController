@@ -26,7 +26,7 @@ class ABallSwitch;
 // 扉はどれか1つのスイッチにバインドすればよい。
 DECLARE_DYNAMIC_MULTICAST_DELEGATE_TwoParams(FOnBallSwitchActiveChanged, ABallSwitch*, Switch, bool, bActive);
 
-UCLASS()
+UCLASS(PrioritizeCategories=("Switch"))
 class BALLCONTROLLER_API ABallSwitch : public AActor
 {
 	GENERATED_BODY()

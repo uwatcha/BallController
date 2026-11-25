@@ -12,7 +12,7 @@ class UStaticMeshComponent;
 class UMaterialInstanceDynamic;
 class UMaterialInterface;
 
-UCLASS()
+UCLASS(PrioritizeCategories=("Door"))
 class BALLCONTROLLER_API ABallDoor : public AActor
 {
 	GENERATED_BODY()

@@ -13,7 +13,7 @@
 class UReticleWidget;
 class UMyPrimaryDataAsset;
 
-UCLASS()
+UCLASS(PrioritizeCategories=("Parameter", "Input", "UI"))
 class BALLCONTROLLER_API ACursorController : public APlayerController
 {
 	GENERATED_BODY()

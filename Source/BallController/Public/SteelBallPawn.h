@@ -14,7 +14,7 @@ class UInputMappingContext;
 class UInputAction;
 class UMyPrimaryDataAsset;
 
-UCLASS()
+UCLASS(PrioritizeCategories=("Parameter"))
 class BALLCONTROLLER_API ASteelBallPawn : public APawn
 {
 	GENERATED_BODY()
