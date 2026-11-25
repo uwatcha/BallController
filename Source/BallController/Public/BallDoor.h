@@ -26,6 +26,10 @@ public:
 	UFUNCTION(BlueprintPure, Category="Door")
 	bool IsOpenRequested() const { return bOpenRequested; }
 
+	// 扉の大きさ (cm) を指定する。足元（アクターの位置）から上に立つ。BallRoom が穴に合わせるときに呼ぶ
+	// Width = 壁に沿った幅（ローカル Y）、Height = 高さ、Thickness = 厚さ（ローカル X）
+	void FitSize(float Width, float Height, float Thickness);
+
 protected:
 	virtual void BeginPlay() override;
 

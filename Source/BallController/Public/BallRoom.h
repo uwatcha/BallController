@@ -12,6 +12,7 @@
 class UInstancedStaticMeshComponent;
 class UMaterialInterface;
 class UMaterialInstanceDynamic;
+class ABallDoor;
 
 // 壁の面（アクターのローカル座標で見た向き）
 UENUM(BlueprintType)
@@ -53,6 +54,13 @@ struct FRoomOpening
 	// 穴の下端の高さ (cm)。床の上面からの高さ。0 なら床から
 	UPROPERTY(EditAnywhere, Category="Opening", meta=(ClampMin="0.0"))
 	float Bottom = 0.f;
+
+	// この穴に置く扉（スポイトでレベル上の BP_BallDoor を選ぶ）。
+	// 部屋が扉をこの穴の位置・向き・大きさ（幅・高さ・壁の厚さ）に自動で合わせる。
+	// 扉のある穴は、穴の下の壁（床の厚さぶん）を作らない。沈みきった扉の上面がそこの床になる。
+	// 2部屋で共有する壁の扉は、穴を持っている方の部屋にだけ登録する
+	UPROPERTY(EditInstanceOnly, Category="Opening")
+	TObjectPtr<ABallDoor> Door;
 };
 
 UCLASS(PrioritizeCategories=("Room"), HideCategories=(Rendering, Replication, Collision, HLOD, Input, LOD, Cooking, Physics, Networking, Navigation, Tags, Activation, "Actor Tick"))
@@ -139,14 +147,20 @@ protected:
 	UPROPERTY()
 	TObjectPtr<UInstancedStaticMeshComponent> WallBoxes;
 
-private:
-	void Rebuild();
-
-	// 1面ぶんの壁を、穴を避けて箱に分けて追加する
-	void BuildWall(ERoomSide Side);
+	// 床を作る。坂などの子クラスはここを差し替える（壁・穴・扉の処理はそのまま使える）
+	virtual void BuildFloor();
 
 	// 中心とサイズ (cm) を指定して箱を1つ追加する（ローカル座標）
 	static void AddBox(UInstancedStaticMeshComponent* ISM, const FVector& Center, const FVector& Size);
+
+private:
+	void Rebuild();
+
+	// 穴に登録された扉を、穴の位置・向き・大きさに合わせる（エディタ上だけ）
+	void FitDoors();
+
+	// 1面ぶんの壁を、穴を避けて箱に分けて追加する
+	void BuildWall(ERoomSide Side);
 
 	void ApplyColor(UInstancedStaticMeshComponent* ISM, const FLinearColor& Color, TObjectPtr<UMaterialInstanceDynamic>& MID);
 

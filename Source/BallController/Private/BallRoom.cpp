@@ -3,6 +3,8 @@
 
 #include "BallRoom.h"
 
+#include "BallDoor.h"
+
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
@@ -64,18 +66,7 @@ void ABallRoom::Rebuild()
 
 	if (bFloor)
 	{
-		// 壁がある面は壁の厚さの半分だけ縮めて、壁の内側に収める（壁が床の下まで伸びて縁を覆う）。
-		// 壁をオフにした面は縮めずに、境界線まで伸ばす
-		const float HalfT = WallThickness * 0.5f;
-		const float X0 = -RoomSize.X * 0.5f + (bWallMinusX ? HalfT : 0.f);
-		const float X1 =  RoomSize.X * 0.5f - (bWallPlusX  ? HalfT : 0.f);
-		const float Y0 = -RoomSize.Y * 0.5f + (bWallMinusY ? HalfT : 0.f);
-		const float Y1 =  RoomSize.Y * 0.5f - (bWallPlusY  ? HalfT : 0.f);
-		if (X1 > X0 && Y1 > Y0)
-		{
-			AddBox(FloorBoxes, FVector((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, -FloorThickness * 0.5f),
-				FVector(X1 - X0, Y1 - Y0, FloorThickness));
-		}
+		BuildFloor();
 	}
 	if (bCeiling)
 	{
@@ -91,6 +82,26 @@ void ABallRoom::Rebuild()
 
 	ApplyColor(FloorBoxes, FloorColor, FloorMaterial);
 	ApplyColor(WallBoxes, WallColor, WallMaterial);
+
+	FitDoors();
+}
+
+void ABallRoom::BuildFloor()
+{
+	{
+		// 壁がある面は壁の厚さの半分だけ縮めて、壁の内側に収める（壁が床の下まで伸びて縁を覆う）。
+		// 壁をオフにした面は縮めずに、境界線まで伸ばす
+		const float HalfT = WallThickness * 0.5f;
+		const float X0 = -RoomSize.X * 0.5f + (bWallMinusX ? HalfT : 0.f);
+		const float X1 =  RoomSize.X * 0.5f - (bWallPlusX  ? HalfT : 0.f);
+		const float Y0 = -RoomSize.Y * 0.5f + (bWallMinusY ? HalfT : 0.f);
+		const float Y1 =  RoomSize.Y * 0.5f - (bWallPlusY  ? HalfT : 0.f);
+		if (X1 > X0 && Y1 > Y0)
+		{
+			AddBox(FloorBoxes, FVector((X0 + X1) * 0.5f, (Y0 + Y1) * 0.5f, -FloorThickness * 0.5f),
+				FVector(X1 - X0, Y1 - Y0, FloorThickness));
+		}
+	}
 }
 
 void ABallRoom::BuildWall(ERoomSide Side)
@@ -147,6 +158,11 @@ void ABallRoom::BuildWall(ERoomSide Side)
 		H.U0 = FMath::Clamp(O.Offset - O.Width * 0.5f, UMin, UMax);
 		H.U1 = FMath::Clamp(O.Offset + O.Width * 0.5f, UMin, UMax);
 		H.Z0 = FMath::Clamp(O.Bottom, 0.f, WallHeight);
+		// 扉のある床ぎわの穴は、穴の下の壁も作らない（沈んだ扉が入る場所）
+		if (O.Door && O.Bottom <= 0.f)
+		{
+			H.Z0 = WallBottom;
+		}
 		// 高さを使わない穴は、壁の上端まで抜く
 		H.Z1 = O.bUseHeight ? FMath::Clamp(O.Bottom + O.Height, 0.f, WallHeight) : WallHeight;
 		if (H.U1 - H.U0 > KINDA_SMALL_NUMBER && H.Z1 - H.Z0 > KINDA_SMALL_NUMBER)
@@ -206,6 +222,51 @@ void ABallRoom::BuildWall(ERoomSide Side)
 			Z = FMath::Max(Z, ZH.Value);
 		}
 		EmitSolid(Z, WallHeight);
+	}
+}
+
+void ABallRoom::FitDoors()
+{
+	UWorld* World = GetWorld();
+	if (!World || World->IsGameWorld())
+	{
+		// ゲーム中は保存済みの位置をそのまま使う
+		return;
+	}
+
+	const FTransform RoomTM = GetActorTransform();
+	for (const FRoomOpening& O : Openings)
+	{
+		ABallDoor* Door = O.Door;
+		if (!Door || O.Width <= 0.f)
+		{
+			continue;
+		}
+
+		const float Height = O.bUseHeight ? O.Height : FMath::Max(WallHeight - O.Bottom, 0.f);
+		if (Height <= 0.f)
+		{
+			continue;
+		}
+
+		// 扉の足元（穴の下端の中心、壁の中心線上）と向き（扉のローカル X = 壁の厚さ方向）
+		FVector Local = FVector::ZeroVector;
+		float Yaw = 0.f;
+		switch (O.Side)
+		{
+		case ERoomSide::PlusX:  Local = FVector( RoomSize.X * 0.5f, O.Offset, O.Bottom); Yaw = 0.f;  break;
+		case ERoomSide::MinusX: Local = FVector(-RoomSize.X * 0.5f, O.Offset, O.Bottom); Yaw = 0.f;  break;
+		case ERoomSide::PlusY:  Local = FVector(O.Offset,  RoomSize.Y * 0.5f, O.Bottom); Yaw = 90.f; break;
+		case ERoomSide::MinusY: Local = FVector(O.Offset, -RoomSize.Y * 0.5f, O.Bottom); Yaw = 90.f; break;
+		}
+
+		const FVector WorldLoc = RoomTM.TransformPosition(Local);
+		const FQuat WorldRot = RoomTM.GetRotation() * FRotator(0.f, Yaw, 0.f).Quaternion();
+		Door->SetActorTransform(FTransform(WorldRot, WorldLoc, FVector::OneVector));
+		Door->FitSize(O.Width, Height, WallThickness);
+#if WITH_EDITOR
+		Door->MarkPackageDirty();
+#endif
 	}
 }
 

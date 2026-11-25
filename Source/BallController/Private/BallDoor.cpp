@@ -71,6 +71,13 @@ void ABallDoor::BeginPlay()
 	EvaluateSwitches();
 }
 
+void ABallDoor::FitSize(float Width, float Height, float Thickness)
+{
+	// エンジン標準の Cube は 100cm 角で中心が原点
+	DoorMesh->SetRelativeScale3D(FVector(Thickness, Width, Height) / 100.f);
+	DoorMesh->SetRelativeLocation(FVector(0.f, 0.f, Height * 0.5f));
+}
+
 void ABallDoor::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
