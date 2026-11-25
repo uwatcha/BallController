@@ -44,6 +44,9 @@ public:
 	UFUNCTION(BlueprintPure, Category="Switch")
 	bool IsPressed() const { return bPressed; }
 
+	// グループ名（扉が名前でスイッチを探すときに使う）
+	FName GetGroupName() const { return GroupName; }
+
 	// 効果が切り替わったときに呼ばれる（扉側でバインドする）
 	UPROPERTY(BlueprintAssignable, Category="Switch")
 	FOnBallSwitchActiveChanged OnActiveChanged;

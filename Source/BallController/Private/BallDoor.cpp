@@ -8,6 +8,7 @@
 #include "Components/StaticMeshComponent.h"
 #include "Engine/CollisionProfile.h"
 #include "Engine/StaticMesh.h"
+#include "EngineUtils.h"
 #include "Materials/MaterialInstanceDynamic.h"
 #include "UObject/ConstructorHelpers.h"
 
@@ -55,17 +56,34 @@ void ABallDoor::BeginPlay()
 	// 0 なら扉の高さぶんちょうど沈める（沈みきると扉の上面が床と同じ高さになり、そのまま床として乗れる）
 	ActualOpenDistance = OpenDistance > 0.f ? OpenDistance : DoorMesh->Bounds.BoxExtent.Z * 2.f;
 
+	// 直接入れたスイッチと、グループ名で見つけたスイッチをまとめる
+	LinkedSwitches.Reset();
 	for (ABallSwitch* Switch : Switches)
 	{
 		if (Switch)
 		{
-			Switch->OnActiveChanged.AddDynamic(this, &ABallDoor::HandleSwitchChanged);
+			LinkedSwitches.AddUnique(Switch);
+		}
+	}
+	if (!SwitchGroupName.IsNone())
+	{
+		for (TActorIterator<ABallSwitch> It(GetWorld()); It; ++It)
+		{
+			if (It->GetGroupName() == SwitchGroupName)
+			{
+				LinkedSwitches.AddUnique(*It);
+			}
 		}
 	}
 
-	if (Switches.Num() == 0)
+	for (ABallSwitch* Switch : LinkedSwitches)
 	{
-		SB_LOG(LogTemp, Warning, TEXT("%s: Switches が空なので開きません"), *GetName());
+		Switch->OnActiveChanged.AddDynamic(this, &ABallDoor::HandleSwitchChanged);
+	}
+
+	if (LinkedSwitches.Num() == 0)
+	{
+		SB_LOG(LogTemp, Warning, TEXT("%s: 連動するスイッチがないので開きません（Switches か Switch Group Name を設定）"), *GetName());
 	}
 
 	EvaluateSwitches();
@@ -111,7 +129,7 @@ void ABallDoor::EvaluateSwitches()
 {
 	int32 ValidCount = 0;
 	int32 ActiveCount = 0;
-	for (const ABallSwitch* Switch : Switches)
+	for (const ABallSwitch* Switch : LinkedSwitches)
 	{
 		if (Switch)
 		{

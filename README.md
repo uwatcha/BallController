@@ -31,8 +31,8 @@
 | `Public/MyPrimaryDataAsset.h` | User + Claude | `ESteelBallDampType` と `DampType`（11/18、92ac226） |
 | `Public/ReticleWidget.h` / `Private/ReticleWidget.cpp` | User | なし |
 | `Public/BallLog.h` | Claude | ファイル全体（`SB_LOG` マクロ。スレッド『UE_LOGに行数を出すマクロを作る』11/14、5d14391） |
-| `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23） |
-| `Public/BallDoor.h` / `Private/BallDoor.cpp` | Claude | ファイル全体（スイッチと連動して下に沈む扉。色・開く/閉じる速さ・沈む距離・待ち時間を調整可能。スレッド『あの部屋のスイッチを作る』11/24。開ききっても当たり判定を残す修正と、BallRoom から大きさを合わせる `FitSize` はスレッド『い、うの部屋作成』11/25） |
+| `Public/BallSwitch.h` / `Private/BallSwitch.cpp` | Claude | ファイル全体（鉄球・鉄箱で押すスイッチ。Once/Keep × 単体/グループ、3色表示、`OnActiveChanged` で扉へ通知。スレッド『あの部屋のスイッチを作る』11/23。`GetGroupName()` はスレッド『い、うの部屋作成』11/25） |
+| `Public/BallDoor.h` / `Private/BallDoor.cpp` | Claude | ファイル全体（スイッチと連動して下に沈む扉。色・開く/閉じる速さ・沈む距離・待ち時間を調整可能。スレッド『あの部屋のスイッチを作る』11/24。開ききっても当たり判定を残す修正と、BallRoom から大きさを合わせる `FitSize`、グループ名でスイッチと連動する `SwitchGroupName` はスレッド『い、うの部屋作成』11/25） |
 | `Public/BallRoom.h` / `Private/BallRoom.cpp` | Claude | ファイル全体（床と4枚の壁・天井を数値から組み立てる部屋。部屋の大きさ・壁の高さ/厚さ・床の厚さ・色を調整可能、壁の穴（扉・通路）を面・位置・幅・高さで指定。穴に登録した扉 BallDoor を位置・向き・大きさごと自動で合わせ、扉の下の壁をくり抜く。床の作り方は子クラスで差し替え可能（`BuildFloor`）。スレッド『い、うの部屋作成』11/24〜25） |
 | `Public/DebugCameraZoomComponent.h` / `Private/DebugCameraZoomComponent.cpp` | Claude | ファイル全体（デバッグ用カメラズーム。PlayerController に付けるコンポーネントで、キー長押しで SpringArm を縮める/伸ばし、単押しで元の長さに戻す。速さ・最短/最長・長押し判定の秒数を調整可能。Pawn と CursorController のコードは変更なし。スレッド『デバッグ用カメラズームを追加』11/24） |
 | `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |

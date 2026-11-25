@@ -42,6 +42,12 @@ protected:
 	UPROPERTY(EditInstanceOnly, Category="Door")
 	TArray<TObjectPtr<ABallSwitch>> Switches;
 
+	// スイッチの「Group Name」と同じ名前を入れると、その名前のスイッチ全部と連動する（ゲーム開始時に探す）。
+	// アクタ参照（Switches）と違って、BP を編集・コンパイルしても外れない。
+	// 単体のスイッチにも、扉ごとに別の名前（例: A、B）を付けて使う
+	UPROPERTY(EditAnywhere, Category="Door")
+	FName SwitchGroupName = NAME_None;
+
 	// true: 入れたスイッチが全部 ON で開く / false: どれか1つが ON で開く
 	UPROPERTY(EditAnywhere, Category="Door")
 	bool bRequireAllSwitches = true;
@@ -91,6 +97,10 @@ private:
 	void ApplyColor();
 
 	bool bOpenRequested = false;
+
+	// 実際に連動するスイッチ（Switches と、SwitchGroupName で見つけたもの）
+	UPROPERTY(Transient)
+	TArray<TObjectPtr<ABallSwitch>> LinkedSwitches;
 
 	// 開く条件を満たしてからの経過時間（OpenDelay 用）
 	float OpenRequestedTime = 0.f;
