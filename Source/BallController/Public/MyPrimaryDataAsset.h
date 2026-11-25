@@ -54,7 +54,7 @@ public:
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=1, ClampMin=1, UIMax = 5000, ClampMax = 5000, Units="kg"))
 	float Mass = 500.f;
 	
-	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 1000, ClampMax = 1000, ForceUnits="cm/s"))
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 5000, ClampMax = 5000, ForceUnits="cm/s"))
 	float MaxSpeed = 200.f;
 	
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="SteelBall|Physics", meta=(UIMin=0, ClampMin=0, UIMax = 100, ClampMax = 100))
