@@ -38,6 +38,14 @@ public:
 		FRichCurve* Speed = SpeedCurve.GetRichCurve();
 		Speed->AddKey(0.f, 0.f);
 		Speed->AddKey(1.f, 1.f);
+		// [Claude] MF の射程内カーブ: 直線 (0,0)→(1,1)。離れるほど強く引っ張る
+		FRichCurve* MFIn = MFInRangeCurve.GetRichCurve();
+		MFIn->AddKey(0.f, 0.f);
+		MFIn->AddKey(1.f, 1.f);
+		// [Claude] MF の射程外カーブ: 1 のまま横ばい (射程の端と同じ強さ)
+		FRichCurve* MFOut = MFOutOfRangeCurve.GetRichCurve();
+		MFOut->AddKey(0.f, 1.f);
+		MFOut->AddKey(1.f, 1.f);
 	}
 	
 	// ===== Cursor|Force : カーソル入力から作る力 =====
@@ -109,6 +117,53 @@ public:
 	// 一度弾いてから、次に弾けるようになるまでの時間 (秒)。連続で何度も弾かれるのを防ぐ
 	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Gimmick|Bumper", meta=(UIMin=0, ClampMin=0, UIMax=2, ClampMax=2, Units="s"))
 	float BumperCooldown = 0.1f;
+	
+	// ===== Ability|MagneticForce : マグネティックフォース [Claude] =====
+	// MagneticForceComponent（鉄球の BP に付ける）が毎フレーム読む。プレイ中に書き換えてもすぐ反映される
+	
+	// 射程距離 (cm)。キーを押している間、球の中心からこの距離の中にある対象を全てつかむ。半透明の領域もこの大きさ
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=10000, Units="cm"))
+	float MFRange = 1000.f;
+	
+	// 解除距離 (cm)。つかんだ対象が、球の中心からこれより遠くなったら離す。射程距離より小さい値は射程距離として扱う
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=20000, Units="cm"))
+	float MFReleaseDistance = 2000.f;
+	
+	// 保持距離 (cm)。球の中心からこの距離までは引っ張らない (カーブの X=0 がこの距離)。目安は 球の半径 + 箱の半分
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=2000, Units="cm"))
+	float MFHoldDistance = 150.f;
+	
+	// 引っ張る加速度の最大値 (cm/s²)。カーブの Y=1 のときの強さ。加速度なので、対象の重さに関係なく同じ引っ張られ方になる
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=20000))
+	float MFMaxPullAcceleration = 3000.f;
+	
+	// ブレーキの強さ (1/s)。対象と球の速さの差に掛けて、逆向きの加速度にする。大きいほど揺れずに球についてくる
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=20))
+	float MFPullDamping = 3.f;
+	
+	// 射程内のカーブ。X: 0 = 保持距離、1 = 射程距離の端。Y: 引っ張る加速度の最大値に掛ける倍率
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(XAxisName="Distance (0=Hold, 1=Range)", YAxisName="Pull Rate"))
+	FRuntimeFloatCurve MFInRangeCurve;
+	
+	// 射程外のカーブ (一度つかんだ対象が射程の外に出たとき)。X: 0 = 射程距離の端、1 = 解除距離。Y: 倍率
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(XAxisName="Distance (0=Range, 1=Release)", YAxisName="Pull Rate"))
+	FRuntimeFloatCurve MFOutOfRangeCurve;
+	
+	// オン: 水平方向にだけ引っ張る (対象は床の上を引きずられる)。オフ: 上下にも引っ張る
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce")
+	bool bMFHorizontalOnly = true;
+	
+	// 引き寄せる対象のアクタータグ。このタグが付いていて、物理シミュレーションがオンの物だけを引き寄せる
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce")
+	FName MFTargetTag = TEXT("Magnetic");
+	
+	// 半透明の領域の色 (マテリアルの "Color" パラメータに渡す)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce")
+	FLinearColor MFFieldColor = FLinearColor(0.2f, 0.6f, 1.f);
+	
+	// 半透明の領域の不透明度 (マテリアルの "Opacity" パラメータに渡す。0 = 透明、1 = 不透明)
+	UPROPERTY(EditDefaultsOnly, BlueprintReadOnly, Category="Ability|MagneticForce", meta=(UIMin=0, ClampMin=0, UIMax=1, ClampMax=1))
+	float MFFieldOpacity = 0.2f;
 	
 	// ===== SteelBall|Physics : 鉄球の物理パラメータ =====
 	
