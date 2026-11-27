@@ -39,6 +39,7 @@
 | `Public/BallBumper.h` / `Private/BallBumper.cpp` | Claude | ファイル全体（当たった鉄球を中心から外向きに弾く円柱のバンパー。直径・高さ・色を調整可能、弾く速さはデータアセットで調整。スレッド『い、うの部屋作成』11/25） |
 | `Public/MagneticForceComponent.h` / `Private/MagneticForceComponent.cpp` | Claude | ファイル全体（マグネティックフォース。鉄球の BP に付けるコンポーネントで、キーを押している間だけ、射程内のタグ付きの物理で動く物を全てつかみ、距離に応じたカーブの強さで球の方へ引っ張る。力は対象にだけかけるので球は重さの影響を受けない。射程の大きさの半透明の球を表示。調整値は DataAsset。Pawn のコードは変更なし。取得アイテムを取るまで使えない `bUsableWithoutPickup` / `IsAbilityUsable()`。スレッド『部屋Eを作る』11/27） |
 | `Public/BallIronBox.h` / `Private/BallIronBox.cpp` | Claude | ファイル全体（MF で引き寄せられる鉄箱。物理で動く箱に引き寄せ対象のタグを付けたもの。大きさ・重さ・色を調整可能。一度 MF にかけられるまで物理で動かない固定 `bLockUntilMagnet` / `UnlockByMagnet()`。スレッド『部屋Eを作る』11/27） |
+| `Public/BallAbilityPickup.h` / `Private/BallAbilityPickup.cpp` | Claude | ファイル全体（能力の取得アイテム。透明な球の中でイラストの板が回り、鉄球が触れると能力が使えるようになる。取得時の効果音・操作説明パネル・Blueprint イベント `OnPickedUp` を設定可能。スレッド『部屋Eを作る』11/27。カメラに向けて画面の縦軸で回す bFaceCamera / IconSpinSpeed / IconImageAngle（11/27）） |
 | `Public/BallAbilitySubsystem.h` | Claude | ファイル全体（取得した能力を覚える World Subsystem と能力の種類 `EBallAbility`。リスポーンしても消えない。スレッド『部屋Eを作る』11/27） |
 | `Public/DebugCameraZoomComponent.h` / `Private/DebugCameraZoomComponent.cpp` | Claude | ファイル全体（デバッグ用カメラズーム。PlayerController に付けるコンポーネントで、キー長押しで SpringArm を縮める/伸ばし、単押しで元の長さに戻す。速さ・最短/最長・長押し判定の秒数を調整可能。Pawn と CursorController のコードは変更なし。スレッド『デバッグ用カメラズームを追加』11/24） |
 | `Public/DebugDrawSubsystem.h` / `Private/DebugDrawSubsystem.cpp` | Claude | ファイル全体（座標軸ギズモ。スレッド『デバッグ軸を画面左下に表示』11/07、94130f7） |
