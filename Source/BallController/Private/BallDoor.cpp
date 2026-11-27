@@ -15,7 +15,7 @@
 namespace
 {
 	// エンジン標準の BasicShapeMaterial には "Color" というベクトルパラメータがある
-	const FName ColorParamName(TEXT("Color"));
+	const FName DoorColorParamName(TEXT("Color"));
 }
 
 ABallDoor::ABallDoor()
@@ -116,7 +116,7 @@ void ABallDoor::ApplyColor()
 	}
 	if (DoorMaterial)
 	{
-		DoorMaterial->SetVectorParameterValue(ColorParamName, DoorColor);
+		DoorMaterial->SetVectorParameterValue(DoorColorParamName, DoorColor);
 	}
 }
 

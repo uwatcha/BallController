@@ -17,7 +17,7 @@
 
 namespace
 {
-	const FName ColorParamName(TEXT("Color"));
+	const FName RoomColorParamName(TEXT("Color"));
 
 	// エンジン標準の Cube は 100cm 角で中心が原点
 	constexpr float CubeSize = 100.f;
@@ -399,7 +399,7 @@ void ABallRoom::ApplyColor(UInstancedStaticMeshComponent* ISM, const FLinearColo
 	{
 		MID = UMaterialInstanceDynamic::Create(BaseMaterial, this);
 	}
-	MID->SetVectorParameterValue(ColorParamName, Color);
+	MID->SetVectorParameterValue(RoomColorParamName, Color);
 	if (ISM->GetMaterial(0) != MID)
 	{
 		ISM->SetMaterial(0, MID);

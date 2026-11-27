@@ -10,6 +10,11 @@
 - まず、UE の標準機能や一般的なやり方（世間でどうしているか）を、エディタの操作手順つきで教える
 - 機能追加は、標準機能では実現できない・ゲームに必須なものだけ、必要最低限の範囲で行う
 
+## コンパイルしてから報告する（2026-11-27 ユーザーの指示）
+- C++ を書いたら、報告の前に Claude が自分でビルドする（`/Users/Shared/Epic Games/UE_5.7/Engine/Build/BatchFiles/Mac/Build.sh BallControllerEditor Mac Development -Project="<uproject>" -waitmutex`）
+- コンパイルエラーが出たら、直してからユーザーに報告する。ユーザーにビルドエラーを貼らせない
+- Unity ビルドで .cpp がまとめられるので、無名 namespace やファイル内の定数でも、ほかのファイルと名前がかぶらないようにする
+
 ## 作者の記録（必須）
 - コードファイルの1行目に `// Author: User` / `// Author: Claude` / `// Author: User + Claude` / `// Author: UE Template` を書く
 - 新しいファイルを作ったら、または既存ファイルを Claude が書き換えたら、README.md の「実装者の記録」の表を更新する

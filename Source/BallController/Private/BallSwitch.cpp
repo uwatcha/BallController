@@ -16,7 +16,7 @@
 namespace
 {
 	// エンジン標準の BasicShapeMaterial には "Color" というベクトルパラメータがある
-	const FName ColorParamName(TEXT("Color"));
+	const FName SwitchColorParamName(TEXT("Color"));
 }
 
 ABallSwitch::ABallSwitch()
@@ -169,5 +169,5 @@ void ABallSwitch::UpdateColor()
 	}
 
 	const FLinearColor& Color = bActive ? ColorActive : (bPressed ? ColorWaitingGroup : ColorReleased);
-	PlateMaterial->SetVectorParameterValue(ColorParamName, Color);
+	PlateMaterial->SetVectorParameterValue(SwitchColorParamName, Color);
 }
